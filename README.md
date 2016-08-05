@@ -198,7 +198,7 @@ Definition in XSPEC
      * **par18 ... rcloud**
        - radius of the obscuring cloud
        - the meaning of cloud is inverted for negative values of rcloud, i.e. 
-         only the radiation behind the cloud is computed
+         only the radiation transmitted through the cloud is computed
      * **par19 ... zshift**
        - overall Doppler shift
      * **par20 ... limb**

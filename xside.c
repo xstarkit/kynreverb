@@ -156,6 +156,8 @@
  * ide_param[22]: beta   - position of the cloud in beta impact parameter 
  *                         (in GM/c^2)
  * ide_param[23]: rcloud - radius of the cloud (in GM/c^2)
+ *                       - if negative, only the emission transmitted through
+ *                         the cloud is taken into account
  * (int) ide_param[24]: observed_flux - whether the flux defined in emissivity 
  *                                      subroutine is local one (0) or the
  *                                      observed one (1)
