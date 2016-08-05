@@ -171,16 +171,17 @@ Definition in XSPEC
          source is located (GM/c^(2))
      * **par10 ... PhoIndex**
        - power-law energy index of the primary flux
-     * **par11 ... Np**
-       - dN/dt/d&Omega;, the intrinsic local (if negative) or the observed 
+     * **par11 ... L/L~Edd~**
+       - dE/dt;, the intrinsic local (if negative) or the observed 
          (if positive) primary isotropic flux in the X-ray energy range 2-10keV 
          in units of L~Edd~
      * **par12 ... NpNr**
        - ratio of the primary to the reflected normalization
        - 1: self-consistent model for isotropic primary source
        - 0: only reflection, primary source is hidden
-       - if positive then Np (par11) means the luminosity towards the observer
-       - if negative then Np (par11) means the luminosity towards the disc
+       - if positive then L/L~Edd~ (par11) means the luminosity towards the 
+         observer
+       - if negative then L/L~Edd~ (par11) means the luminosity towards the disc
      * **par13 ... nH0**
        - density profile normalization in 10^15 cm^(-3)
      * **par14 ... q_n**

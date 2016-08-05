@@ -53,16 +53,16 @@
  * par9 ... height - height on the axis (measured from the center) at which
  *                   the primary source is located (GM/c^2)
  * par10 ... PhoIndex - power-law energy index of the primary flux
- * par11 ... Np       - dN/dt/dOmega, the intrinsic local (if negative) or the 
+ * par11 ... L/Ledd   - dE/dt, the intrinsic local (if negative) or the 
  *                      observed (if positive) primary isotropic flux in the 
  *                      X-ray energy range 2-10keV in units of Ledd
  * par12 ... NpNr   - ratio of the primary to the reflected normalization
  *                    1 - self-consistent model for isotropic primary source
  *                    0 - only reflection, primary source is hidden
- *                  - if negative then Np (par11) means the luminosity towards
- *                    the disc
- *                  - if positive then Np (par11) means the luminosity towards
- *                    the observer
+ *                  - if negative then L/Ledd (par11) means the luminosity 
+ *                    towards the disc
+ *                  - if positive then L/Ledd (par11) means the luminosity 
+ *                    towards the observer
  * par13 ... nH0     - density profile normalization in 10^15 cm^(-3)
  * par14 ... q_n     - radial power-law density profile
  * par15 ... abun    - Fe abundance (in solar abundance)
@@ -77,10 +77,12 @@
  *                    rcloud, i.e. only the radiation behind the cloud is 
  *                    computed
  * par19 ... zshift - overall Doppler shift
- * par20 ... limb   - defines fits file with tables
- *                    0 -> for isotropic emission (flux ~ 1)
- *                    1 -> for Laor's limb darkening (flux ~ (1+2.06*mu))
- *                    2 -> for Haardt's limb brightening (flux ~ ln (1+1/mu))
+ * par20 ... limb   - limb darkening/brightening law (emission directionality)
+ *                  - if = 0 the local emisivity is not multiplied by anything
+ *                  - if = 1 the local emisivity is multiplied by 1+2.06*mu
+ *                    (limb darkening)
+ *                  - if = 2 the local emisivity is multiplied by ln(1+1/mu)
+ *                    (limb brightening)
  * par21 ... tab - which reflion table to use 
  *                 1 -> reflion (the old one, lower cut-off energy at 1eV,
  *                      not good for PhoIndex > 2)
@@ -92,9 +94,8 @@
  *                 2 -> use the Xi correspondent to the computed normalization
  *                      of the incident flux, i.e. do not shift the cut-offs
  *                      when computing the total incident intensity
- * par23 ... ntable   - defines fits file with tables (0 <= ntable <= 99)
- *                      by default only the tables with ntable=80 are
- *                      correct for this model
+ * par23 ... ntable - table of relativistic transfer functions used in the model
+ *                    (defines fits file with tables), 0<= ntable <= 99
  * par24 ... nradius  - number of grid points in radius
  *                    - if negative than the number of radial grid points is 
  *                      dependent on height as -nradius / height^0.66
@@ -381,7 +382,7 @@ param[ 6] = 360.;     // dphi
 param[ 7] = 0.1;      // M/M8
 param[ 8] = 3.;       // height
 param[ 9] = 2.;       // PhoIndex
-param[10] = 0.001;    // Np
+param[10] = 0.001;    // L/Ledd
 param[11] = 1.;       // NpNr
 param[12] = 1.;       // nH0
 param[13] = 0.;       // q_n
@@ -675,8 +676,8 @@ else {
 }
 // PhoIndex - power-law energy index of the lamp emission
 gamma0 = param[9];
-// Np - dN/dt/dOmega primary isotropic flux in Eddington luminosity
-//      as seen by the disc
+// L/Ledd - dE/dt primary isotropic flux in Eddington luminosity as seen by the 
+//          disc
 Np = param[10];
 // Np:Nr - ratio of the primary to the reflected normalization
 NpNr = param[11];
