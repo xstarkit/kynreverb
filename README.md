@@ -175,16 +175,16 @@ Definition in XSPEC
        - dE/dt;, the intrinsic local (if negative) or the observed 
          (if positive) primary isotropic flux in the X-ray energy range 2-10keV 
          in units of L~Edd~
-     * **par12 ... NpNr**
+     * **par12 ... Np:Nr**
        - ratio of the primary to the reflected normalization
        - 1: self-consistent model for isotropic primary source
        - 0: only reflection, primary source is hidden
        - if positive then L/L~Edd~ (par11) means the luminosity towards the 
          observer
        - if negative then L/L~Edd~ (par11) means the luminosity towards the disc
-     * **par13 ... nH0**
+     * **par13 ... density**
        - density profile normalization in 10^15 cm^(-3)
-     * **par14 ... q_n**
+     * **par14 ... den_prof**
        - radial power-law density profile
      * **par15 ... abun**
        - Fe abundance (in solar abundance)
@@ -195,7 +195,7 @@ Definition in XSPEC
      * **par17 ... beta**
        - position of the cloud centre in GM/c^2 in beta coordinate (beta being 
          the impact parameter in &theta;-direction, positive in up direction, 
-         i.e. away from the disc)
+         i.e. above the disc)
      * **par18 ... rcloud**
        - radius of the obscuring cloud
        - the meaning of cloud is inverted for negative values of rcloud, i.e. 
@@ -222,11 +222,10 @@ Definition in XSPEC
      * **par23 ... ntable**
        - defines fits file with tables (0 &le; ntable &le; 99), currently the 
          tables with ntable=80 are correct for this model
-     * **par24 ... nradius**
+     * **par24 ... nrad**
        - number of grid points in radius
        - if negative than the number of radial grid points is dependent on 
-         height as 
-       -nradius&nbsp;/&nbsp;height^(&nbsp;0.66) 
+         height as -nrad&nbsp;/&nbsp;height^(&nbsp;0.66) 
      * **par25 ... division**
        - type of division in radial integration
        - 0: equidistant radial grid (constant linear step)
@@ -265,7 +264,7 @@ Definition in XSPEC
        - negative values are in GM/c^3 or (GM/c^(3))^(-1)
        - in case of frequency dependent lags it defines the upper value of the 
          energy band of interest in keV
-     * **par31 ... E3**
+     * **par31 ... Eref1**
        - it defines the lower value of the reference energy band for lag or 
          amplitude energy dependence as well as in case of frequency dependent 
          lags and amplitudes
@@ -273,10 +272,10 @@ Definition in XSPEC
        - if negative, the whole energy band is used as a reference band for 
          lag-energy spectra, always excluding the current energy bin; it must be
          non-negative in case of lag-frequency dependence
-     * **par32 ... E4**
+     * **par32 ... Eref2**
        - it defines the upper value of the reference energy band for lag-energy
          dependence as well as in case of frequency dependent lags
-     * **par33 ... tshift/Af**
+     * **par33 ... dt/Af**
        - lag shift for lag-energy dependence in case of par35=+6
        - multiplicative factor in case of adding empirical hard lags 
          Af&times;f^(qf), used for par35=+16
@@ -285,7 +284,7 @@ Definition in XSPEC
          par35=+5
        - powerlaw index in case of adding empirical hard lags Af&times;f^(qf), 
          used for par35=+16
-     * **par35 ... photar_sw**
+     * **par35 ... xsw**
        - defines output in the XSPEC (photar array)
        - 0: spectrum for time interval defined by par29 and par30
        - _the following values correspond to energy dependent Fourier transform 
@@ -375,10 +374,10 @@ Definition outside XSPEC
                   param[ 7] = 0.1;      // M/M8
                   param[ 8] = 3.;       // height
                   param[ 9] = 2.;       // PhoIndex
-                  param[10] = 0.001;    // Np
-                  param[11] = 1.;       // NpNr
-                  param[12] = 1.;       // nH0
-                  param[13] = 0.;       // q_n
+                  param[10] = 0.001;    // L/Ledd
+                  param[11] = 1.;       // Np:Nr
+                  param[12] = 1.;       // density
+                  param[13] = 0.;       // den_prof
                   param[14] = 1.;       // abun
                   param[15] = -6.;      // alpha
                   param[16] = 0.;       // beta
@@ -388,18 +387,18 @@ Definition outside XSPEC
                   param[20] = 2.;       // tab
                   param[21] = 2.;       // sw
                   param[22] = 80.;      // ntable
-                  param[23] = -4488.;   // nradius
+                  param[23] = -4488.;   // nrad
                   param[24] = -1.;      // division
                   param[25] = 180.;     // nphi
                   param[26] = 1.;       // deltaT
                   param[27] = 1.;       // nt
-                  param[28] = 2.e-4;    // time/frequency/energy-lower
-                  param[29] = 8.e-4;    // time/frequency/energy-upper
-                  param[30] = -1.;      // reference energy band-lower
-                  param[31] = 3.;       // reference energy band-upper
-                  param[32] = 0.;       // lag shift or multiplicative factor for hard lags
-                  param[33] = 1.;       // amplitude multiplicative factor or power-law index for hard lags
-                  param[34] = 6.;       // photar_sw
+                  param[28] = 2.e-4;    // t1/f1/E1
+                  param[29] = 8.e-4;    // t2/f2/E2
+                  param[30] = -1.;      // Eref1
+                  param[31] = 3.;       // Eref2
+                  param[32] = 0.;       // dt/Af
+                  param[33] = 1.;       // Amp/qf
+                  param[34] = 6.;       // xsw
                   param[35] = 4.;       // nthreads
                   param[36] = 1.;       // norm
 
