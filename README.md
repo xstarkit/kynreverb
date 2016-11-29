@@ -88,7 +88,7 @@ Usage in XSPEC
 The code is compiled inside XSPEC with the following command (assuming all the 
 source files and FITS tables are in the directory /path/to/KYNrefrev):
 
-* `initpackage kynrefrev lmodel.dat /path/to/KYNrefrev`.
+* `initpackage kynrefrev lmodel-kynrefrev.dat /path/to/KYNrefrev`.
 
 To use the KYNrefrev model inside XSPEC, first the package needs to be loaded 
 and directory with KYNrefrev set:
@@ -269,9 +269,12 @@ Definition in XSPEC
          amplitude energy dependence as well as in case of frequency dependent 
          lags and amplitudes
        - if zero no reference band is used
-       - if negative, the whole energy band is used as a reference band for 
-         lag-energy spectra, always excluding the current energy bin; it must be
-         non-negative in case of lag-frequency dependence
+       - if negative:
+         * for lag-energy spectra, the whole energy band is used as a reference 
+           band, always excluding the current energy bin
+         * for lag-frequency dependence, the energy reference band is
+           abs(par31) to abs(par32) excluding overlaping part with energy band 
+           of interest abs(par29) to abs(par30)
      * **par32 ... Eref2**
        - it defines the upper value of the reference energy band for lag-energy
          dependence as well as in case of frequency dependent lags

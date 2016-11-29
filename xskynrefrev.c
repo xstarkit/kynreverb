@@ -3,7 +3,7 @@
  *
  * ref. Dovciak M., Karas V., Martocchia A., Matt G., Yaqoob T. (2004)
  * --> this is very old reference on KY package of models when the reverberation
- *     code has not been developed yet but wasdeveloped from this package
+ *     code has not been developed yet but was developed from this package
  * -----------------------------------------------------------------------------
  * OTHER REFERENCES:
  * 
@@ -141,10 +141,13 @@
  *                     for lag or amplitude energy dependence as well as in 
  *                     case of frequency dependent lags and amplitudes
  *                   - if zero no reference band is used
- *                   - if negative, the whole energy band is used as a 
- *                     reference band for lag-energy spectra (it must be 
- *                     non-negative in case of lag-frequency dependence) 
- *                     always excluding the current energy bin
+ *                   - if negative:
+ *                     * for lag-energy spectra, the whole energy band is used 
+ *                       as a reference band, always excluding the current 
+ *                       energy bin
+ *                     * for lag-frequency dependence, the energy reference band 
+ *                       is abs(par31) to abs(par32) excluding overlaping part 
+ *                       with energy band of interest abs(par29) to abs(par30)
  * par32 ... Eref2   - it defines the upper value of the reference energy band
  *                     for lag-energy dependence as well as in case of 
  *                     frequency dependent lags
@@ -319,11 +322,12 @@
 #define NPARAM 37
 
 // for the energy dependence
+/*
 #define NE     15
 #define E_MIN  0.3
 #define E_MAX  10.
 #define NBANDS 5
-
+*/
 /*
 // for a nice energy dependence
 #define NE     200
@@ -332,20 +336,18 @@
 #define NBANDS 5
 */
 
-/*
 // for the frequency dependence
 #define NE     200
-#define E_MIN  1e-5
+#define E_MIN  1e-4
 #define E_MAX  0.01
 #define NBANDS 2
-*/
 
 /* Let's declare variables that are common for the main and KYNrefrev
    subroutines */
 static double ener_low[NBANDS], ener_high[NBANDS];
 
 int main() {
-  
+
 void KYNrefrev(double *ear, int ne, const double *param, int ifl, 
                double *photar, double *photer, const char* init);
 
@@ -355,22 +357,18 @@ int    ie, ia, iinc, ih;
 
 //definition of energy band of interest, reference band is defined as the last 
 //one, usually the whole energy range
-/*
-ener_low[0] = 0.3;
-ener_high[0] = 1.;
-ener_low[1] = 2.;
-ener_high[1] = 4.;
-*/
 ener_low[0] = 0.3;
 ener_high[0] = 0.8;
 ener_low[1] = 1.;
 ener_high[1] = 3.;
+/*
 ener_low[2] = 3.;
 ener_high[2] = 9.;
 ener_low[3] = 12.;
 ener_high[3] = 40.;
 ener_low[4] = E_MIN;
-ener_high[4] = E_MAX;
+ener_high[4] = E_MAX-1e-4;
+*/
 //definition of the KYNrefrev parameters
 param[ 0] = 1.;       // a/M
 param[ 1] = 30.;      // thetaO
@@ -400,30 +398,33 @@ param[24] = -1.;      // division
 param[25] = 180.;     // nphi
 param[26] = 1.;       // deltaT
 param[27] = 1.;       // nt
+/*
 param[28] = 0.;       // t1/f1/E1
 param[29] = 8.3e-4;   // t2/f2/E2
 param[30] = -1.;      // Eref1
 param[31] = 3.;       // Eref2
+*/
 // the following should be used only for debugging purposes for the case of 
 // abs(photar_sw) > 10
-// the energy bands above should be then re-defined to consist of just 2 bands!
+// the energy bands above should be then re-defined to consist of just 2 bands..
 // for energy band definitions the param[] values are used, while ener_low[]
 // and ener_high[] are ignored later on!
-/*
+
 param[28] = ener_low[0];       // t1/f1/E1
 param[29] = ener_high[0];      // t2/f2/E2
 param[30] = ener_low[1];       // Eref1
 param[31] = ener_high[1];      // Eref2
-*/
+
 param[32] = 0.;       // dt/Af
 param[33] = 1.;       // Amp/qf
-param[34] = 6.;       // xsw
+param[34] = 16.;       // xsw
 param[35] = 4.;       // nthreads
 param[36] = 1.;       // norm
 
+
 for (ie = 0; ie <= NE; ie++) {
-//  ear[ie] = E_MIN + ie * (E_MAX-E_MIN) / NE;
-  ear[ie] = E_MIN * pow(E_MAX / E_MIN, ((double) ie) / NE);
+  ear[ie] = E_MIN + ie * (E_MAX-E_MIN) / NE;
+//  ear[ie] = E_MIN * pow(E_MAX / E_MIN, ((double) ie) / NE);
 }
 
 //for (ia=0;ia<=1;ia++){
@@ -454,7 +455,8 @@ return(0);
 /*******************************************************************************
 *******************************************************************************/
 
-#define MPC_2    1.05e-49
+//Mpc in cm
+#define MPC      3.0856776e+24
 #define ERG      6.241509e8
 // rg is gravitational unit GM/c^2 for M = 10^8*Msun and rg2=rg^2
 #define RG2      2.1819222e26
@@ -466,6 +468,7 @@ return(0);
 // sec = G*10^8*Msun/c^3
 #define SEC      492.568
 // logxi_norm=alog10(Ledd*(M/(10^8*Msun))/(rg*m8)^2/nH)=
+//            alog10(Ledd/RG2/1e15)+alog10(mass)=
 //            alog10(1.26e46/(1.477e5*1e8)^2/1e15)+alog10(mass)
 //            logxi_norm0+alog10(mass)
 #define LOGXI_NORM0   4.761609554
@@ -481,14 +484,14 @@ return(0);
 double    *del=NULL, t0, fwrap=0.;
 float     *radius=NULL;
 long int  nradius;
-int       all_energy=0;
+int       exclude_energy=0;
 
 /* Let's declare variables that are common for the main and emissivity 
    subroutines */
 static float  *xi=NULL, *logxi=NULL;
 static double *gfac=NULL, *transf_d=NULL, *energy1=NULL, *flux1=NULL;
 //static double *cosin=NULL, *phiph=NULL;
-static double h, gamma0, nH0, qn, mass2, am2, r_plus, Np, logxi_norm, dt, 
+static double h, gamma0, nH0, qn, mass, am2, r_plus, Np, dt, 
               flare_duration_rg, flare_duration_sec;
 static long   nxi;
 static int    sw, limb, nt_ratio;
@@ -570,7 +573,7 @@ double pr_final, pom, pom1, pom2, pom3;
 double r, r2, delta, ULt, rms, tmp1, Ut, U_r, UrU_r, Lms, Ems;
 //double q_final, U_phi, Ur;
 double am, thetaO, rin=0., rout, h_rh, elow, ehigh;
-double mass, Anorm, Dnorm, g_L, E0, Lx;
+double mass2, Anorm, Dnorm, g_L, E0, Lx;
 double flux_prim_tot, flux_refl_tot, refl_ratio, NpNr;
 double zzshift;
 double abundance, lensing, gfactor0, ionisation;
@@ -662,7 +665,6 @@ ide_param[13] = param[22];
 // M/M8 - black hole mass in units of 10^8 solar masses
 mass = param[7];
 mass2 = mass * mass;
-logxi_norm = LOGXI_NORM0 + log10(mass);
 // height - height on the axis (measured from the center) at which the primary
 //          source is located (GM/c^2)
 h = param[8];
@@ -681,7 +683,7 @@ gamma0 = param[9];
 Np = param[10];
 // Np:Nr - ratio of the primary to the reflected normalization
 NpNr = param[11];
-if(NpNr > 0.) Np /= NpNr;
+if( NpNr > 0. ) Np /= NpNr;
 // nH0 - density profile normalization in 10^15 cm^(-3)
 nH0 = param[12];
 // q_n - radial power-law density profile
@@ -691,13 +693,13 @@ abundance = param[14];
 // zshift - overall Doppler shift
 if (param[18] > 0.) {
   ide_param[12] = param[18];
-  Dnorm = pow(HUBBLE / CLIGHT / param[18], 2);
+  Dnorm = pow( HUBBLE / MPC / CLIGHT / param[18], 2 );
 }else if (param[18] < 0.) {
   ide_param[12] = 0.;
-  Dnorm = pow(-HUBBLE / CLIGHT / param[18], 2);
+  Dnorm = pow( -HUBBLE / MPC / CLIGHT / param[18], 2 );
 }else {
   ide_param[12] = 0.;
-  Dnorm = 1.;
+  Dnorm = 1. / ( MPC * MPC );
 }
 // zzshift - multiplication factor for gfac from zshift needed for primary
 zzshift=1.0/(1.0+ide_param[12]);
@@ -901,47 +903,57 @@ if (photar_sw == 0){
 //amplitudes as well as energy dependent lags and amplitudes
 en3 = param[30];
 en4 = param[31];
-if ( ( (abs(photar_sw) == 5 || abs(photar_sw) == 6) && 
-       (en3 > 0. && en3 >= en4) ) ||
-     ( (abs(photar_sw) == 15 || abs(photar_sw) == 16) && 
-       (en3 <= 0. || en3 >= en4) ) ) {
+if ( ( ( abs(photar_sw) == 5 || abs(photar_sw) == 6 ) && 
+       ( en3 > 0. && en3 >= en4 ) ) ||
+     ( ( abs(photar_sw) == 15 || abs(photar_sw) == 16 ) && ( fabs(en3) >= fabs(en4) ) ) ) {
   sprintf(errortxt,"kynrefrev: wrong definition of the reference energy band.");
   xs_write(errortxt, 5);
   for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
   goto error;
 }
+exclude_energy=0;
 #ifdef OUTSIDE_XSPEC
 if( abs(photar_sw) > 10 ){
   nbands=1;
   ener_low[0]=en1;
   ener_high[0]=en2;
-}else nbands = NBANDS;
+}else{
+  nbands = NBANDS;
+  if(ener_low[nbands-1] == ear_xspec[0] &&
+     ener_high[nbands-1] == ear_xspec[ne_xspec])exclude_energy=1;
+}
 if(abs(photar_sw) == 15 || abs(photar_sw) == 16){
   nbands++;
-  ener_low[nbands-1] = en3;
-  ener_high[nbands-1] = en4;
+  ener_low[nbands-1] = fabs(en3);
+  ener_high[nbands-1] = fabs(en4);
+  if(en3<0.)exclude_energy=1.;
 }
-if(ener_low[nbands-1] == ear_xspec[0] &&
-   ener_high[nbands-1] == ear_xspec[ne_xspec])all_energy=1;
-else all_energy=0;
 #else
 if( abs(photar_sw) > 10 ){
   nbands=1;
   ener_low[0]=en1;
   ener_high[0]=en2;
 }else nbands = 0;
-if(abs(photar_sw) == 5 || abs(photar_sw) == 6 || 
-   abs(photar_sw) == 15 || abs(photar_sw) == 16){
+if(abs(photar_sw) == 5 || abs(photar_sw) == 6){
   if(en3 < 0){
     nbands++;
     ener_low[nbands-1] = ear_xspec[0];
     ener_high[nbands-1] = ear_xspec[ne_xspec];
-    all_energy = 1;
+    exclude_energy = 1;
   }else if( en3 > 0 && en3 < en4 ){
     nbands++;
     ener_low[nbands-1] = en3;
     ener_high[nbands-1] = en4;
-    all_energy = 0;
+    exclude_energy = 0;
+  }
+}
+if(abs(photar_sw) == 15 || abs(photar_sw) == 16){
+  if( fabs(en3) < fabs(en4) ){
+    nbands++;
+    ener_low[nbands-1] = fabs(en3);
+    ener_high[nbands-1] = fabs(en4);
+    if( en3 < 0 )exclude_energy = 1;
+    else exclude_energy = 0;
   }
 }
 #endif
@@ -953,42 +965,42 @@ if(abs(photar_sw) <= 10){
 }else{
   ear=ear_short;
 //let's define ne and new ear energy array
-  if( (en1==en3 && en2==en4) || abs(photar_sw) < 15){
+  if( (en1==fabs(en3) && en2==fabs(en4)) || abs(photar_sw) < 15){
     ne=1;
     ear[0]=en1;
     ear[1]=en2;
-  }else if(en1==en3){
+  }else if(en1==fabs(en3)){
     ne=2;
     ear[0]=en1;
-    if(en2<en4) {ear[1]=en2;ear[2]=en4;}
-    else {ear[1]=en4;ear[2]=en2;}
-  }else if(en2==en4){
+    if(en2<fabs(en4)) {ear[1]=en2;ear[2]=fabs(en4);}
+    else {ear[1]=fabs(en4);ear[2]=en2;}
+  }else if(en2==fabs(en4)){
     ne=2;
     ear[2]=en2;
-    if(en1<en3) {ear[0]=en1;ear[1]=en3;}
-    else {ear[0]=en3;ear[1]=en1;}
-  }else if(en2==en3){
+    if(en1<fabs(en3)) {ear[0]=en1;ear[1]=fabs(en3);}
+    else {ear[0]=fabs(en3);ear[1]=en1;}
+  }else if(en2==fabs(en3)){
     ne=2;
     ear[0]=en1;
     ear[1]=en2;
-    ear[2]=en4;
-  }else if(en1==en4){
+    ear[2]=fabs(en4);
+  }else if(en1==fabs(en4)){
     ne=2;
-    ear[0]=en3;
+    ear[0]=fabs(en3);
     ear[1]=en1;
     ear[2]=en2;
-  }else if(en1<en3){
+  }else if(en1<fabs(en3)){
     ne=3;
     ear[0]=en1;
-    if(en2<en3){ear[1]=en2;ear[2]=en3;ear[3]=en4;}
-    else if(en2<en4){ear[1]=en3;ear[2]=en2;ear[3]=en4;}
-    else {ear[1]=en3;ear[2]=en4;ear[3]=en2;}
-  }else if(en3 < en1){
+    if(en2<fabs(en3)){ear[1]=en2;ear[2]=fabs(en3);ear[3]=fabs(en4);}
+    else if(en2<fabs(en4)){ear[1]=fabs(en3);ear[2]=en2;ear[3]=fabs(en4);}
+    else {ear[1]=fabs(en3);ear[2]=fabs(en4);ear[3]=en2;}
+  }else if(fabs(en3) < en1){
     ne=3;
-    ear[0]=en3;
-    if(en4<en1){ear[1]=en4;ear[2]=en1;ear[3]=en2;}
-    else if(en4<en2){ear[1]=en1;ear[2]=en4;ear[3]=en2;}
-    else {ear[1]=en1;ear[2]=en2;ear[3]=en4;}
+    ear[0]=fabs(en3);
+    if(fabs(en4)<en1){ear[1]=fabs(en4);ear[2]=en1;ear[3]=en2;}
+    else if(fabs(en4)<en2){ear[1]=en1;ear[2]=fabs(en4);ear[3]=en2;}
+    else {ear[1]=en1;ear[2]=en2;ear[3]=fabs(en4);}
   }
 }
 //Create arrays of different dimensions according to photar_sw, i.e. different
@@ -1557,7 +1569,7 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
 // Allocate memory for local flux...
   if( (flux0   = (double *) malloc(ne_loc * nxi * sizeof(double))) == NULL ||
       (flux1   = (double *) malloc( nener * nxi * sizeof(double))) == NULL ||
-      (energy1 = (double *) malloc( (nener + 1) * sizeof(double))) == NULL ||
+      (energy1 = (double *) malloc( nener * sizeof(double))) == NULL ||
       (energy2 = (double *) malloc( (nener + 1) * sizeof(double))) == NULL ) {
     xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
     for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
@@ -1731,18 +1743,18 @@ for (i = 0; i < 2; i++) {
             h * sqrt(1. - 2. * h / (h * h + am2)) / (r * r + h * h) / r;
   if (lensing != 0.) {
     if (qn != 0.) {
-      if (sw == 1) ionisation = logxi_norm + log10(pow(r, -qn) * lensing * 
-                                gfactor0 * Np / mass2 / nH0);
+      if (sw == 1) ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
+                                gfactor0 * Np / mass / nH0);
       //sw==2      
-      else ionisation = logxi_norm + log10(pow(r, -qn) * lensing * 
-                        pow(gfactor0, gamma0 - 1.) * Np / mass2 / nH0);
+      else ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
+                        pow(gfactor0, gamma0 - 1.) * Np / mass / nH0);
     }
     else {
-      if (sw == 1) ionisation = logxi_norm + 
-                                log10(lensing * gfactor0 * Np / mass2 / nH0);
+      if (sw == 1) ionisation = LOGXI_NORM0 + 
+                                log10(lensing * gfactor0 * Np / mass / nH0);
       //sw==2      
-      else ionisation = logxi_norm + 
-                 log10(lensing * pow(gfactor0, gamma0 - 1.) * Np / mass2 / nH0);
+      else ionisation = LOGXI_NORM0 + 
+                 log10(lensing * pow(gfactor0, gamma0 - 1.) * Np / mass / nH0);
     }
     if (i == 0) {
       sprintf(kyxiin, "%e", pow(10, ionisation));
@@ -1768,13 +1780,13 @@ if (ide(ear, ne, nt, far, qar, uar, var, ide_param, emis_KYNrefrev,
 // Let's normalize the reflected flux properly
 for (ie = 0; ie < ne; ie++)
   for (it = 0; it <nt; it++)
-    far[ie+ne*it] *= Dnorm * mass2 * RG2 * MPC_2 * REFLIONX_NORM;
+    far[ie+ne*it] *= Dnorm * mass2 * RG2;
 // Let's add primary flux to the solution (note we multiply by dt later on)
 refl_ratio=-1.;
 if (NpNr != 0.) {
 //*
 //  Let's use our own incomplete gamma function computations
-  Anorm = LEDD * mass * MPC_2 * ERG * Np / pow(EC, 2. - gamma0) / PI2 / 2. / 
+  Anorm = LEDD * mass * ERG * Np / pow(EC, 2. - gamma0) / PI2 / 2. / 
           incgamma( 2.-gamma0, E0 / EC );
   gf[0] = incgamma(1.-gamma0, ear[0]/(g_L*zzshift*EC));
   for ( ie = 1; ie <= ne; ie++){
@@ -1786,7 +1798,7 @@ if (NpNr != 0.) {
 /*
 // Let's compute the incomplete gamma function with the XSPEC incgamma 
 // function
-  Anorm = LEDD * mass * MPC_2 * ERG * Np / pow(EC, 2. - gamma0) / PI2 / 2. / 
+  Anorm = LEDD * mass * ERG * Np / pow(EC, 2. - gamma0) / PI2 / 2. / 
           incgamma(2. - gamma0, E0 / EC);
 // let's compute the cut-off powerlaw with the XSPEC routine cutoffPowerLaw
   for (ie = 0; ie <= ne; ie++) ear1[ie] = ear[ie];
@@ -1991,10 +2003,7 @@ if(photar_sw){
   }else{
 //  let's use least squares on log(flux) vs. log(time) from last n points
     npoints=30.;
-    sumt=0.;
-    sumf=0.;
-    sumt2=0.;
-    sumtf=0.;
+    sumt = sumf = sumt2 = sumtf = 0.;
     for(it=0;it<npoints;it++){
       ttmp = log10(time[nt-npoints+it]);
       utmp = log10(flux[nt-npoints+it]);
@@ -2011,10 +2020,7 @@ if(photar_sw){
       if( flux[it] < 0. || isnan(flux[it]) || isinf(flux[it]) ) flux[it] = 0.;
     }
     for(ie=0;ie<ne;ie++){
-      sumt=0.;
-      sumf=0.;
-      sumt2=0.;
-      sumtf=0.;
+      sumt = sumf = sumt2 = sumtf = 0.;
       for(it=0;it<npoints;it++){
         ttmp = log10(time[nt-npoints+it]);
         utmp = log10(far[ie+ne*(nt-npoints+it)]);
@@ -2039,7 +2045,9 @@ if(photar_sw){
     flux_bands_prim[iband]=0.;
   }
   for(ie=0;ie<ne;ie++){
-    for(iband=0;iband<nbands;iband++){
+    for(iband=0;
+        iband < ( ( exclude_energy && abs(photar_sw) >= 15 ) ? nbands-1 : nbands ); 
+        iband++){
 //    whole bins
       if(ear[ie] >= ener_low[iband] && ear[ie+1] <= ener_high[iband])ttmp=1.;
 //    first bin
@@ -2052,9 +2060,33 @@ if(photar_sw){
                ear[ie] >= ener_low[iband])
         ttmp = (ener_high[iband]-ear[ie]) / (ear[ie+1]-ear[ie]);
       else ttmp=0;
-      for(it=0;it<nn;it++)
-        flux_bands[iband+nbands*it] += far[ie+ne*it] * ttmp;
-      flux_bands_prim[iband] += far_prim[ie] * ttmp;
+      if(ttmp){
+        for(it=0;it<nn;it++)
+          flux_bands[iband+nbands*it] += far[ie+ne*it] * ttmp;
+        flux_bands_prim[iband] += far_prim[ie] * ttmp;
+      }
+    }
+//  reference energy band (iband=nbands-1) if we exclude the energy band of interest
+    if( exclude_energy && abs(photar_sw) >= 15 ){
+     iband=nbands-1;
+//    whole bins
+      if( ( ear[ie] >= ener_low[iband] && ear[ie+1] <= ener_high[iband]) &&
+          ( ear[ie] >= ener_high[0] || ear[ie+1] <= ener_low[0] ) ) ttmp=1.;
+//    partial bins
+      else{
+        en1 = ( ear[ie] > ener_low[iband] ? ear[ie] : ener_low[iband]);
+        en1 = ( en1 > ener_high[0] ? en1 : ( en1 >= ener_low[0] ? ener_high[0] : en1 ) );
+        en2 = ( ear[ie+1] < ener_high[iband] ? ear[ie+1] : ener_high[iband]);
+        en2 = ( en2 < ener_low[0] ? en2 : ( en2 <= ener_high[0] ? ener_low[0] : en2 ) );
+        ttmp=en2-en1;
+        if(ttmp<0.)ttmp=0.;
+        else ttmp /= (ear[ie+1]-ear[ie]);
+      }
+      if(ttmp){
+        for(it=0;it<nn;it++)
+          flux_bands[iband+nbands*it] += far[ie+ne*it] * ttmp;
+        flux_bands_prim[iband] += far_prim[ie] * ttmp;
+      }
     }
   }
 /******************************************************************************/
@@ -2152,9 +2184,9 @@ if(photar_sw){
 sprintf(filename, "kynrefrev_photar_%s.dat",cparam);
 fw = fopen(filename, "w");
 for (ie = 0; ie < ne_xspec; ie++) 
-  if(abs(photar_sw) <=10) fprintf(fw, "%14.6f\t%E\n", 0.5*(ear[ie]+ear[ie+1]), 
+  if(abs(photar_sw) <=10) fprintf(fw, "%E\t%E\n", 0.5*(ear[ie]+ear[ie+1]), 
                                   photar[ie] / (ear[ie+1] - ear[ie]));
-  else fprintf(fw, "%14.6f\t%E\n", 0.5*(ear_xspec[ie]+ear_xspec[ie+1]), 
+  else fprintf(fw, "%E\t%E\n", 0.5*(ear_xspec[ie]+ear_xspec[ie+1]), 
                              photar[ie] / (ear_xspec[ie+1] - ear_xspec[ie]));
 fclose(fw);
 #endif
@@ -2202,7 +2234,7 @@ int    ie, imin, imax, ir0;
 if (limb == 0) factor = 1. / PI;
 if (limb == 1) factor = 1. / PI / (1. + 2.06 * 2. / 3.) * (1. + 2.06 * cosmu);
 if (limb == 2) factor = 1. / PI * log(1. + 1. / cosmu);
-factor *= nH0;
+factor *= nH0 * REFLIONX_NORM;
 // given r, find corresponding indices in radius:
 imin = 0;
 imax = nradius;
@@ -2235,17 +2267,17 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
 // Let's compute the emitted flux at the particular radius
     if (lensing != 0.) {
       if (qn != 0.) {
-        if (sw == 1) ionisation = logxi_norm + log10(pow(r, -qn) * lensing * 
-                                  gfactor * Np / mass2 / nH0);
+        if (sw == 1) ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
+                                  gfactor * Np / mass / nH0);
 //      sw==2
-        else ionisation = logxi_norm + log10(pow(r, -qn) * lensing * 
-                          pow(gfactor, gamma0 - 1.) * Np / mass2 / nH0);
+        else ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
+                          pow(gfactor, gamma0 - 1.) * Np / mass / nH0);
       } else {
-        if (sw == 1) ionisation = logxi_norm + log10(lensing * gfactor * 
-                                  Np / mass2 / nH0);
+        if (sw == 1) ionisation = LOGXI_NORM0 + log10(lensing * gfactor * 
+                                  Np / mass / nH0);
 //      sw==2
-        else ionisation = logxi_norm + log10(lensing * 
-                          pow(gfactor, gamma0 - 1.) * Np / mass2 / nH0);
+        else ionisation = LOGXI_NORM0 + log10(lensing * 
+                          pow(gfactor, gamma0 - 1.) * Np / mass / nH0);
       }
 //    given ionisation, find the corresponding index in logXi():
       imin = 0;

@@ -8,7 +8,7 @@
 
 extern int    xs_write(char* wrtstr, int idest);
 extern double t0, fwrap;
-extern int    all_energy;
+extern int    exclude_energy;
 
 void fft_reverberation(const double *ear, int ne, double *photar, 
                        double frequency1, double frequency2, int photar_sw, 
@@ -1128,7 +1128,7 @@ if(abs(photar_sw)<=10){
       else if(photar_sw == -3) photar[ie] = ampl_int[ie];
       else if(photar_sw == -4) photar[ie] = phase_int[ie];
       else if(photar_sw == -5){
-        if(all_energy){
+        if(exclude_energy){
           utmp = flux_bands_prim[nbands-1] * r_part_int_etot -
                  far_prim[ie] * r_part_int[ie];
           utmp1 = flux_bands_prim[nbands-1] * im_part_int_etot -
@@ -1137,7 +1137,7 @@ if(abs(photar_sw)<=10){
                        sqrt( utmp * utmp + utmp1 * utmp1 );
         }else photar[ie] = ampl_int[ie] / ampl_int_etot;
       }else if(photar_sw == -6){
-        if(all_energy){
+        if(exclude_energy){
           utmp = flux_bands_prim[nbands-1] * r_part_int_etot -
                  far_prim[ie] * r_part_int[ie];
           utmp1 = flux_bands_prim[nbands-1] * im_part_int_etot -
@@ -1149,13 +1149,13 @@ if(abs(photar_sw)<=10){
       else if(photar_sw == 3) photar[ie] = ampl_tot_int[ie];
       else if(photar_sw == 4) photar[ie] = phase_tot_int[ie];
       else if(photar_sw == 5){
-        if(all_energy){
+        if(exclude_energy){
           utmp=r_part_tot_int_etot -r_part_tot_int[ie];
           utmp1=im_part_tot_int_etot-im_part_tot_int[ie];
           photar[ie] = ampl_tot_int[ie] / sqrt( utmp * utmp + utmp1 * utmp1 );
         }else photar[ie] = ampl_tot_int[ie] / ampl_tot_int_etot;
       }else if(photar_sw == 6){
-        if(all_energy){
+        if(exclude_energy){
           utmp=r_part_tot_int_etot -r_part_tot_int[ie];
           utmp1=im_part_tot_int_etot-im_part_tot_int[ie];
           photar[ie] = - (phase_tot_int[ie] - atan2(utmp1, utmp)) / PI / freq_wrap;
@@ -1205,7 +1205,7 @@ if(abs(photar_sw)<=10){
       if( (photar_sw ==-5 || photar_sw ==-6) && nbands > 0){
         y1 = r_part_bands[nbands-1+nbands*(ifr0-1)];
         y2 = r_part_bands[nbands-1+nbands*ifr0];
-        if(all_energy){
+        if(exclude_energy){
           y1 = ( flux_bands_prim[nbands-1] * y1 - 
                  far_prim[ie] * r_part[ie+ne*(ifr0-1)] ) / flux_bands_prim[nbands-1];
           y2 = ( flux_bands_prim[nbands-1] * y2 - 
@@ -1214,7 +1214,7 @@ if(abs(photar_sw)<=10){
         r_part_etot = (ttmp1 * y1 + ttmp * y2);
         y1 = im_part_bands[nbands-1+nbands*(ifr0-1)];
         y2 = im_part_bands[nbands-1+nbands*ifr0];
-        if(all_energy){
+        if(exclude_energy){
           y1 = ( flux_bands_prim[nbands-1] * y1 - 
                  far_prim[ie] * im_part[ie+ne*(ifr0-1)] ) / flux_bands_prim[nbands-1];
           y2 = ( flux_bands_prim[nbands-1] * y2 - 
@@ -1228,14 +1228,14 @@ if(abs(photar_sw)<=10){
       if( (photar_sw ==5 || photar_sw ==6) && nbands > 0){
         y1 = r_part_bands_tot[nbands-1+nbands*(ifr0-1)];
         y2 = r_part_bands_tot[nbands-1+nbands*ifr0];
-        if(all_energy){
+        if(exclude_energy){
           y1 -= r_part_tot[ie+ne*(ifr0-1)];
           y2 -= r_part_tot[ie+ne*ifr0];
         }
         r_part_tot_etot=(ttmp1 * y1 + ttmp * y2);
         y1 = im_part_bands_tot[nbands-1+nbands*(ifr0-1)];
         y2 = im_part_bands_tot[nbands-1+nbands*ifr0];
-        if(all_energy){
+        if(exclude_energy){
           y1 -= im_part_tot[ie+ne*(ifr0-1)];
           y2 -= im_part_tot[ie+ne*ifr0];
         }
@@ -1259,7 +1259,7 @@ if(abs(photar_sw)<=10){
       else if(photar_sw == -3) photar[ie] = ampl_fband[ie];
       else if(photar_sw == -4) photar[ie] = phase_fband[ie];
       else if(photar_sw == -5){
-        if(all_energy){
+        if(exclude_energy){
           utmp = flux_bands_prim[nbands-1] * r_part_fband_etot -
                  far_prim[ie] * r_part_fband[ie];
           utmp1 = flux_bands_prim[nbands-1] * im_part_fband_etot -
@@ -1269,7 +1269,7 @@ if(abs(photar_sw)<=10){
         }else photar[ie] = ampl_fband[ie] / ampl_fband_etot;
 // we will use relative delay with respect to the whole energy band and redefine to be positive
       }else if(photar_sw == -6){
-        if(all_energy){
+        if(exclude_energy){
           utmp = flux_bands_prim[nbands-1] * r_part_fband_etot -
                  far_prim[ie] * r_part_fband[ie];
           utmp1 = flux_bands_prim[nbands-1] * im_part_fband_etot -
@@ -1283,14 +1283,14 @@ if(abs(photar_sw)<=10){
       else if(photar_sw == 4)
         photar[ie] = phase_tot_fband[ie];
       else if(photar_sw == 5){
-        if(all_energy){
+        if(exclude_energy){
           utmp=r_part_tot_fband_etot -r_part_tot_fband[ie];
           utmp1=im_part_tot_fband_etot-im_part_tot_fband[ie];
           photar[ie] = ampl_tot_fband[ie] / sqrt( utmp * utmp + utmp1 * utmp1 );
         }else photar[ie] = ampl_tot_fband[ie]/ampl_tot_fband_etot;
 // we will use relative delay with respect to the whole energy band and redefine to be positive
       }else if(photar_sw == 6){
-        if(all_energy){
+        if(exclude_energy){
           utmp=r_part_tot_fband_etot -r_part_tot_fband[ie];
           utmp1=im_part_tot_fband_etot-im_part_tot_fband[ie];
           photar[ie] =  -(phase_tot_fband[ie]-atan2(utmp1,utmp))/PI/(frequency2+frequency1);
