@@ -282,7 +282,7 @@
  *    respectively.
  * 
  *==============================================================================
- * 
+ *
  * non-revreberation code:
  * 27. 8.2009  changed to work with new tables with azimuthal dependence
  * 12.11.2009  changed to work with new lamp-post tables, we can fit for height
@@ -367,14 +367,14 @@ ener_high[2] = 9.;
 ener_low[3] = 12.;
 ener_high[3] = 40.;
 ener_low[4] = E_MIN;
-ener_high[4] = E_MAX-1e-4;
+ener_high[4] = E_MAX;
 */
 //definition of the KYNrefrev parameters
 param[ 0] = 1.;       // a/M
 param[ 1] = 30.;      // thetaO
 param[ 2] = 1.;       // rin
 param[ 3] = 1.;       // ms
-param[ 4] = 1000.;    // rout
+param[ 4] = 2.;    // rout
 param[ 5] = 0.;       // phi0
 param[ 6] = 360.;     // dphi
 param[ 7] = 0.1;      // M/M8
@@ -458,7 +458,7 @@ return(0);
 //Mpc in cm
 #define MPC      3.0856776e+24
 #define ERG      6.241509e8
-// rg is gravitational unit GM/c^2 for M = 10^8*Msun and rg2=rg^2
+// rg is gravitational unit GM/c^2 in cm^2 for M = 10^8*Msun and rg2=rg^2
 #define RG2      2.1819222e26
 // if Ledd is changed one need to recalculate also logxi_norm0 below!!!
 // Ledd is in erg (not W) and multiplied by 10^8 due to (M / (10^8*Msun)) scale
@@ -696,7 +696,7 @@ if (param[18] > 0.) {
   Dnorm = pow( HUBBLE / MPC / CLIGHT / param[18], 2 );
 }else if (param[18] < 0.) {
   ide_param[12] = 0.;
-  Dnorm = pow( -HUBBLE / MPC / CLIGHT / param[18], 2 );
+  Dnorm = pow( - HUBBLE / MPC / CLIGHT / param[18], 2 );
 }else {
   ide_param[12] = 0.;
   Dnorm = 1. / ( MPC * MPC );
@@ -739,8 +739,10 @@ dt0 = param[26];
 //let's keep the T_tail constant, i.e. nt0 * dt0 = TMAX
 nt0 = (int) ceil( TMAX / dt0 );
 if(param[4] != 1000.){
+//here the last term is for inner echo, specially needed for low rout and low h
   nt0 = (int) ceil( 1.2 / dt0 * 
-        ( rout*(1+sin(thetaO/180.*PI)) + h*cos(thetaO/180.*PI) + h*h/rout/2. ) );
+        ( rout*(1+sin(thetaO/180.*PI)) + h*cos(thetaO/180.*PI) + h*h/rout/2. +
+          321./(h+1.) ) );
   if(nt0 > nn) nn = (int) exp2( ceil( log2( nt0 ) ) );
 }
 Tmax = nt0 * dt0;
