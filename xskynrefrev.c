@@ -154,11 +154,16 @@
  * par33 ... dt/Af   - lag shift for lag-energy dependence in case of 
  *                     par35=+6
  *                   - multiplicative factor in case of adding empirical hard
- *                     lags Af*f^(qf), used for par35=+16
+ *                     lags Af*f^(qf), used for par35=+16 and par35=+18; 
+ *                     if par33=-1 then the following hard lags prescription
+ *                     is used (see Epitropakis & Papadakis, 2017):
+ *                     100 * log10(Eref/E) * (f/1e-4)^(-1) s
+ *                     with Eref being middle of the reference energy band
+ *                     and E middle of the energy band of interest
  * par34 ... Amp/qf  - multiplicative factor for the amplitude-energy 
  *                     dependence in case of par35=+5
  *                   - powerlaw index in case of adding empirical hard 
- *                     lags Af*f^(qf), used for par35=+16
+ *                     lags Af*f^(qf), used for par35=+16 and par35=+18
  * par35 ... xsw - function to be stored in the XSPEC photar array
  *                  0 -> spectrum at time defined by par29 and par30,
  *                 the following values correspond to energy
@@ -170,20 +175,42 @@
  *                 -4 -> phase of FT of the relative reflection
  *                 -5 -> amplitude  for the relative reflection
  *                       divided by amplitude in the reference energy band
- *                       defined by par31 and par32
+ *                       defined by par31 and par32 (integration in frequencies
+ *                       is done in real and imaginary parts first and then 
+ *                       the amplitudes are computed)
  *                 -6 -> lag for the relative reflection with respect
  *                       to reference energy band defined by par31 and 
- *                       par32
+ *                       par32 (integration in frequencies is done in real and
+ *                       imaginary parts first and then the lags are computed)
+ *                 -7 -> amplitude  for the relative reflection
+ *                       divided by amplitude in the reference energy band
+ *                       defined by par31 and par32 (integration in frequencies
+ *                       here is done in amplitudes directly)
+ *                 -8 -> lag for the relative reflection with respect
+ *                       to reference energy band defined by par31 and 
+ *                       par32 (integration in frequencies here is done in 
+ *                       lags directly)
  *                  1 -> real part of FT including primary radiation
  *                  2 -> imaginary part of FT including primary radiation
  *                  3 -> amplitude of FT including primary radiation
  *                  4 -> phase of FT including primary radiation
  *                  5 -> amplitude including the primary radiation
  *                       divided by amplitude in the reference energy band
- *                       defined by par31 and par32
+ *                       defined by par31 and par32 (integration in frequencies
+ *                       is done in real and imaginary parts first and then 
+ *                       the amplitudes are computed)
  *                  6 -> lag diluted by primary radiation with respect
  *                       to reference energy band defined by par31 and 
- *                       par32
+ *                       par32 (integration in frequencies is done in real and
+ *                       imaginary parts first and then the lags are computed)
+ *                  7 -> amplitude including the primary radiation
+ *                       divided by amplitude in the reference energy band
+ *                       defined by par31 and par32 (integration in frequencies
+ *                       here is done in amplitudes directly)
+ *                  8 -> lag diluted by primary radiation with respect
+ *                       to reference energy band defined by par31 and 
+ *                       par32 (integration in frequencies here is done in 
+ *                       lags directly)
  *                 the following values correspond to frequency dependent
  *                 Fourier transform for the energy band of interest
  *                 defined by par29 and par30:
@@ -194,9 +221,19 @@
  *                 -15 -> amplitude  for the relative reflection
  *                        divided by amplitude in the reference energy
  *                        band defined by par31 and par32
+ *                        (rebinning here is done in real and imaginary parts 
+ *                         first and then the amplitudes are computed)
  *                 -16 -> lag for the relative reflection with respect
  *                        to reference energy band defined by par31 and 
- *                        par32
+ *                        par32 (rebinning here is done in real and imaginary
+ *                        parts first and then the lags are computed)
+ *                 -17 -> amplitude  for the relative reflection
+ *                        divided by amplitude in the reference energy
+ *                        band defined by par31 and par32
+ *                        (rebinning here is done in amplitudes directly)
+ *                 -18 -> lag for the relative reflection with respect
+ *                        to reference energy band defined by par31 and 
+ *                        par32 (rebinning here is done in lags directly)
  *                  11 -> real part of FT including primary radiation
  *                  12 -> imaginary part of FT including primary radiation
  *                  13 -> amplitude of FT including primary radiation
@@ -204,9 +241,19 @@
  *                  15 -> amplitude including the primary radiation
  *                        divided by amplitude in the reference energy
  *                        band defined by par31 and par32
+ *                        (rebinning here is done in real and imaginary parts 
+ *                         first and then the amplitudes are computed)
  *                  16 -> lag diluted by primary radiation with respect
  *                        to reference energy band defined by par31 and 
- *                        par32
+ *                        par32 (rebinning here is done in real and imaginary
+ *                        parts first and then the lags are computed)
+ *                  17 -> amplitude including the primary radiation
+ *                        divided by amplitude in the reference energy
+ *                        band defined by par31 and par32
+ *                        (rebinning here is done in amplitudes directly)
+ *                  18 -> lag diluted by primary radiation with respect
+ *                        to reference energy band defined by par31 and 
+ *                        par32 (rebinning here is done in lags directly)
  * 
  * par36 ... nthreads - how many threads should be used for computations
  *
@@ -328,20 +375,20 @@
 #define E_MAX  10.
 #define NBANDS 5
 */
-/*
-// for a nice energy dependence
-#define NE     200
-#define E_MIN  0.1
-#define E_MAX  80
-#define NBANDS 5
-*/
 
+// for a nice energy dependence
+#define NE     20
+#define E_MIN  0.3
+#define E_MAX  10
+#define NBANDS 2
+
+/*
 // for the frequency dependence
-#define NE     200
+#define NE     50
 #define E_MIN  1e-4
 #define E_MAX  0.01
 #define NBANDS 2
-
+*/
 /* Let's declare variables that are common for the main and KYNrefrev
    subroutines */
 static double ener_low[NBANDS], ener_high[NBANDS];
@@ -358,10 +405,12 @@ int    ie, ia, iinc, ih;
 //definition of energy band of interest, reference band is defined as the last 
 //one, usually the whole energy range
 ener_low[0] = 0.3;
-ener_high[0] = 0.8;
-ener_low[1] = 1.;
+ener_high[0] = 1.;
+ener_low[1] = 0.;
 ener_high[1] = 3.;
 /*
+ener_low[1] = 1.5;
+ener_high[1] = 4.;
 ener_low[2] = 3.;
 ener_high[2] = 9.;
 ener_low[3] = 12.;
@@ -374,7 +423,7 @@ param[ 0] = 1.;       // a/M
 param[ 1] = 30.;      // thetaO
 param[ 2] = 1.;       // rin
 param[ 3] = 1.;       // ms
-param[ 4] = 2.;    // rout
+param[ 4] = 1000.;    // rout
 param[ 5] = 0.;       // phi0
 param[ 6] = 360.;     // dphi
 param[ 7] = 0.1;      // M/M8
@@ -398,33 +447,33 @@ param[24] = -1.;      // division
 param[25] = 180.;     // nphi
 param[26] = 1.;       // deltaT
 param[27] = 1.;       // nt
-/*
+
 param[28] = 0.;       // t1/f1/E1
-param[29] = 8.3e-4;   // t2/f2/E2
-param[30] = -1.;      // Eref1
+param[29] = 0.8;   // t2/f2/E2
+param[30] = 0.;       // Eref1
 param[31] = 3.;       // Eref2
-*/
+
 // the following should be used only for debugging purposes for the case of 
 // abs(photar_sw) > 10
 // the energy bands above should be then re-defined to consist of just 2 bands..
 // for energy band definitions the param[] values are used, while ener_low[]
 // and ener_high[] are ignored later on!
-
+/*
 param[28] = ener_low[0];       // t1/f1/E1
 param[29] = ener_high[0];      // t2/f2/E2
 param[30] = ener_low[1];       // Eref1
 param[31] = ener_high[1];      // Eref2
-
+*/
 param[32] = 0.;       // dt/Af
 param[33] = 1.;       // Amp/qf
-param[34] = 16.;       // xsw
+param[34] = 8.;       // xsw
 param[35] = 4.;       // nthreads
 param[36] = 1.;       // norm
 
 
 for (ie = 0; ie <= NE; ie++) {
-  ear[ie] = E_MIN + ie * (E_MAX-E_MIN) / NE;
-//  ear[ie] = E_MIN * pow(E_MAX / E_MIN, ((double) ie) / NE);
+//  ear[ie] = E_MIN + ie * (E_MAX-E_MIN) / NE;
+  ear[ie] = E_MIN * pow(E_MAX / E_MIN, ((double) ie) / NE);
 }
 
 //for (ia=0;ia<=1;ia++){
@@ -669,8 +718,10 @@ mass2 = mass * mass;
 //          source is located (GM/c^2)
 h = param[8];
 if (h >= 0.)
-  if (h < r_plus){ h_rh = 0.; h=r_plus;}
-  else h_rh = h - r_plus;
+  if (h < r_plus + 0.1){
+    h_rh = 0.1; h=r_plus+0.1;
+      xs_write("kynrefrev: too low height, we set it to 0.1 above horizon", 5);
+  }else h_rh = h - r_plus;
 else {
   xs_write("kynrefrev: height has to be positive.", 5);
   for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
@@ -905,9 +956,11 @@ if (photar_sw == 0){
 //amplitudes as well as energy dependent lags and amplitudes
 en3 = param[30];
 en4 = param[31];
-if ( ( ( abs(photar_sw) == 5 || abs(photar_sw) == 6 ) && 
+if ( ( ( abs(photar_sw) == 5 || abs(photar_sw) == 6 || 
+         abs(photar_sw) == 7 || abs(photar_sw) == 8 ) && 
        ( en3 > 0. && en3 >= en4 ) ) ||
-     ( ( abs(photar_sw) == 15 || abs(photar_sw) == 16 ) && ( fabs(en3) >= fabs(en4) ) ) ) {
+     ( ( abs(photar_sw) == 15 || abs(photar_sw) == 16 || 
+         abs(photar_sw) == 17 || abs(photar_sw) == 18 ) && ( fabs(en3) >= fabs(en4) ) ) ) {
   sprintf(errortxt,"kynrefrev: wrong definition of the reference energy band.");
   xs_write(errortxt, 5);
   for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
@@ -924,7 +977,8 @@ if( abs(photar_sw) > 10 ){
   if(ener_low[nbands-1] == ear_xspec[0] &&
      ener_high[nbands-1] == ear_xspec[ne_xspec])exclude_energy=1;
 }
-if(abs(photar_sw) == 15 || abs(photar_sw) == 16){
+if( abs(photar_sw) == 15 || abs(photar_sw) == 16 || 
+    abs(photar_sw) == 17 || abs(photar_sw) == 18 ){
   nbands++;
   ener_low[nbands-1] = fabs(en3);
   ener_high[nbands-1] = fabs(en4);
@@ -936,7 +990,8 @@ if( abs(photar_sw) > 10 ){
   ener_low[0]=en1;
   ener_high[0]=en2;
 }else nbands = 0;
-if(abs(photar_sw) == 5 || abs(photar_sw) == 6){
+if( abs(photar_sw) == 5 || abs(photar_sw) == 6 ||
+    abs(photar_sw) == 7 || abs(photar_sw) == 8 ){
   if(en3 < 0){
     nbands++;
     ener_low[nbands-1] = ear_xspec[0];
@@ -949,7 +1004,8 @@ if(abs(photar_sw) == 5 || abs(photar_sw) == 6){
     exclude_energy = 0;
   }
 }
-if(abs(photar_sw) == 15 || abs(photar_sw) == 16){
+if( abs(photar_sw) == 15 || abs(photar_sw) == 16 ||
+    abs(photar_sw) == 17 || abs(photar_sw) == 18 ){
   if( fabs(en3) < fabs(en4) ){
     nbands++;
     ener_low[nbands-1] = fabs(en3);
@@ -1027,13 +1083,18 @@ if ( (time = (double *) malloc( ntmax * sizeof(double)) )  == NULL ||
 //  for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
 //  goto error;
 //}
-if(photar_sw == 5 || photar_sw == 6){
+if(photar_sw == 5 || photar_sw == 6 || photar_sw == 7 || photar_sw == 8){
   lag_shift = param[32];
   ampl_ampl = param[33];
 }
-if(photar_sw == 16){
-  Af = param[32];
-  qf = param[33];
+if(photar_sw == 16 || photar_sw == 18){
+  if(param[32]==-1.){
+    Af = 350.e-4*log10((fabs(en3)+fabs(en4))/(en1+en2));
+    qf = 1.;
+  }else{
+    Af = param[32];
+    qf = param[33];
+  }
 }
 // polar - whether we need value of change in polarization angle (0-no,1-yes)
 //stokes = (int) param[31];
@@ -2119,9 +2180,9 @@ if(photar_sw){
                     nbands, tot_time_sec, flare_duration_sec, cparam);
   sprintf(kyfwrap, "%e", fwrap);
   FPMSTR(pkyfwrap, kyfwrap);
-  if(photar_sw == 5) for(ie=0;ie<ne;ie++)photar[ie] *= ampl_ampl;
-  if(photar_sw == 6) for(ie=0;ie<ne;ie++)photar[ie] += lag_shift * (ear[ie+1]-ear[ie]);
-  if(photar_sw == 16) for(ie=0;ie<ne_xspec;ie++){
+  if(photar_sw == 5 || photar_sw == 7) for(ie=0;ie<ne;ie++)photar[ie] *= ampl_ampl;
+  if(photar_sw == 6 || photar_sw == 8) for(ie=0;ie<ne;ie++)photar[ie] += lag_shift * (ear[ie+1]-ear[ie]);
+  if(photar_sw == 16 || photar_sw == 18) for(ie=0;ie<ne_xspec;ie++){
     if(qf == 1)photar[ie] += Af*log(ear_xspec[ie+1]/ear_xspec[ie]);
     else photar[ie] += Af*(pow(ear_xspec[ie+1],1.-qf)-pow(ear_xspec[ie],1.-qf))/(1.-qf);
   }

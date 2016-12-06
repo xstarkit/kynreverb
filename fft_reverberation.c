@@ -24,36 +24,42 @@ double freq_wrap=0., freq_wrap0=0.;
 double Re_sinc, Im_sinc;
 double *data_r=NULL, *data_im=NULL, *freq=NULL;
 double *r_part=NULL, *im_part=NULL, *ampl=NULL, *phase=NULL, *phase_u1=NULL, 
-       *phase_u2=NULL;
+       *phase_u2=NULL, *ampl_etot2=NULL, *phase_etot2=NULL;
 double *r_part_tot=NULL, *im_part_tot=NULL, *ampl_tot=NULL, *phase_tot=NULL, 
-       *phase_tot_u1=NULL, *phase_tot_u2=NULL;
+       *phase_tot_u1=NULL, *phase_tot_u2=NULL, *ampl_tot_etot2=NULL, *phase_tot_etot2=NULL;
 double *r_part_bands=NULL, *im_part_bands=NULL, *ampl_bands=NULL, 
        *phase_bands=NULL, *phase_bands_u1=NULL;
 double *r_part_bands_tot=NULL, *im_part_bands_tot=NULL, *ampl_bands_tot=NULL,
        *phase_bands_tot=NULL, *phase_bands_tot_u1=NULL;
-double r_part_int[ne], im_part_int[ne], ampl_int[ne],
-       phase_int[ne], phase_int_u2[ne], delay_int[ne];
-double r_part_tot_int[ne], im_part_tot_int[ne], ampl_tot_int[ne],
-       phase_tot_int[ne], phase_tot_int_u2[ne], delay_tot_int[ne];
-double r_part_fband[ne], im_part_fband[ne], ampl_fband[ne],
-       phase_fband[ne], phase_fband_u2[ne], delay_fband[ne];
-double r_part_tot_fband[ne], im_part_tot_fband[ne], ampl_tot_fband[ne],
-       phase_tot_fband[ne], phase_tot_fband_u2[ne], delay_tot_fband[ne];
-double r_part_int_etot=0., im_part_int_etot=0.,
-       ampl_int_etot=0., phase_int_etot=0., delay_int_etot=0.;
-double r_part_tot_int_etot=0., im_part_tot_int_etot=0.,
-       ampl_tot_int_etot=0., phase_tot_int_etot=0., delay_tot_int_etot=0.;
-double r_part_fband_etot=0., im_part_fband_etot=0.,
-       ampl_fband_etot=0., phase_fband_etot=0., delay_fband_etot=0.;
-double r_part_tot_fband_etot=0., im_part_tot_fband_etot=0.,
-       ampl_tot_fband_etot=0., phase_tot_fband_etot=0., delay_tot_fband_etot=0.;
+double r_part_int[ne], im_part_int[ne], ampl_int[ne], ampl2_int[ne],
+       phase_int[ne], phase_int_u2[ne], delay2_int[ne];
+double r_part_tot_int[ne], im_part_tot_int[ne], ampl_tot_int[ne], ampl2_tot_int[ne],
+       phase_tot_int[ne], phase_tot_int_u2[ne], delay2_tot_int[ne];
+double r_part_fband[ne], im_part_fband[ne], ampl_fband[ne], ampl2_fband[ne],
+       phase_fband[ne], phase_fband_u2[ne], delay2_fband[ne];
+double r_part_tot_fband[ne], im_part_tot_fband[ne], ampl_tot_fband[ne], ampl2_tot_fband[ne],
+       phase_tot_fband[ne], phase_tot_fband_u2[ne], delay2_tot_fband[ne];
+double r_part_int_etot=0., im_part_int_etot=0., ampl_int_etot=0., 
+       ampl2_int_etot=0., ampl2_int_etot2[ne],
+       phase_int_etot=0., delay2_int_etot=0., delay2_int_etot2[ne];
+double r_part_tot_int_etot=0., im_part_tot_int_etot=0., ampl_tot_int_etot=0., 
+       ampl2_tot_int_etot=0., ampl2_tot_int_etot2[ne], 
+       phase_tot_int_etot=0., delay2_tot_int_etot=0., delay2_tot_int_etot2[ne];
+double r_part_fband_etot=0., im_part_fband_etot=0., ampl_fband_etot=0., 
+       ampl2_fband_etot=0., ampl2_fband_etot2[ne], 
+       phase_fband_etot=0., delay2_fband_etot=0., delay2_fband_etot2[ne];
+double r_part_tot_fband_etot=0., im_part_tot_fband_etot=0., ampl_tot_fband_etot=0., 
+       ampl2_tot_fband_etot=0.,ampl2_tot_fband_etot2[ne],
+       phase_tot_fband_etot=0., delay2_tot_fband_etot=0., delay2_tot_fband_etot2[ne];
 double r_part_etot=0., im_part_etot=0., ampl_etot=0., phase_etot=0.;
 double r_part_tot_etot=0., im_part_tot_etot=0., ampl_tot_etot=0., 
        phase_tot_etot=0.;
 double r_part_bands_rebin[2*ne], im_part_bands_rebin[2*ne];
 double ampl_bands_rebin[2*ne], phase_bands_rebin[2*ne];
+double ampl2_bands_rebin[2*ne], delay2_bands_rebin[2*ne];
 double r_part_bands_tot_rebin[2*ne], im_part_bands_tot_rebin[2*ne];
 double ampl_bands_tot_rebin[2*ne], phase_bands_tot_rebin[2*ne];
+double ampl2_bands_tot_rebin[2*ne], delay2_bands_tot_rebin[2*ne];
 double ttmp, ttmp1, utmp, utmp1, y1=0., y2=0., y3=0., y4=0.;
 int    ie, iband, iiband, k1, k2, nonwrap;
 long   it, ifr, ifr0, ifrn, ifreq;
@@ -80,12 +86,16 @@ if( ( r_part   = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL |
     ( phase    = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_u1 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_u2 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
+    ( ampl_etot2   = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
+    ( phase_etot2  = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( r_part_tot   = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( im_part_tot  = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( ampl_tot     = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_tot    = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_tot_u1 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
-    ( phase_tot_u2 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ) {
+    ( phase_tot_u2 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
+    ( ampl_tot_etot2  = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
+    ( phase_tot_etot2 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ) {
   xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
   for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
   goto error;
@@ -242,6 +252,19 @@ for(iband=0;iband<nbands;iband++){
 //    phase_bands_u2[iband+nbands*ifr] = atan2(im_part_bands[iband+nbands*ifr], r_part_bands[iband+nbands*ifr])+k2*PI2;
   }
 }
+// compute amplitudes and phases for the whole energy band excluding current energy bin
+if( nbands>0 && exclude_energy && ( photar_sw == -7 || photar_sw == -8 ) )
+  for(ie=0;ie<ne;ie++)
+    for(ifr=0;ifr<=nn/2;ifr++){
+      ttmp = flux_bands_prim[nbands-1] * r_part_bands[nbands-1+nbands*ifr] - 
+             far_prim[ie] * r_part[ie+ne*ifr];
+      ttmp1 = flux_bands_prim[nbands-1] * im_part_bands[nbands-1+nbands*ifr] - 
+              far_prim[ie] * im_part[ie+ne*ifr];
+      if(photar_sw == -7) 
+        ampl_etot2[ie+ne*ifr] = sqrt( ttmp*ttmp + ttmp1*ttmp1 ) / 
+                                ( flux_bands_prim[nbands-1] - far_prim[ie] );
+      if(photar_sw == -8) phase_etot2[ie+ne*ifr] = atan2( ttmp1, ttmp );
+    }
 //compute frequency wrapping for XSPEC
 if(abs(photar_sw) > 10){
   ifr = 1;
@@ -286,6 +309,15 @@ if( photar_sw > 0){
 //        1.+r_part_bands[iband+nbands*ifr])+k2*PI2;
     }
   }
+// compute amplitudes and phases for the whole energy band excluding current energy bin
+  if( nbands>0 && exclude_energy && ( photar_sw == 7 || photar_sw == 8 ) )
+    for(ie=0;ie<ne;ie++)
+      for(ifr=0;ifr<=nn/2;ifr++){
+        ttmp = r_part_bands_tot[nbands-1+nbands*ifr] - r_part_tot[ie+ne*ifr];
+        ttmp1 = im_part_bands_tot[nbands-1+nbands*ifr] - im_part_tot[ie+ne*ifr];
+        if(photar_sw == 7) ampl_tot_etot2[ie+ne*ifr] = sqrt( ttmp*ttmp + ttmp1*ttmp1 );
+        if(photar_sw == 8) phase_tot_etot2[ie+ne*ifr] = atan2( ttmp1, ttmp );
+      }
 #ifndef OUTSIDE_XSPEC
 }
 //}
@@ -300,7 +332,8 @@ if( abs(photar_sw) <= 10 ){
       for(ie=0;ie<ne;ie++){
         r_part_int[ie] = r_part[ie];
         im_part_int[ie] = im_part[ie];
-        delay_int[ie] = 0;
+        ampl2_int[ie] = 0;
+        delay2_int[ie] = 0;
       }
       ifr = 2;
       nonwrap = 1;
@@ -312,7 +345,8 @@ if( abs(photar_sw) <= 10 ){
         for(ie=0;ie<ne;ie++){
           r_part_int[ie] += r_part[ie+ne*ifr];
           im_part_int[ie] += im_part[ie+ne*ifr];
-          delay_int[ie] += phase[ie+ne*ifr] / PI2 / freq[ifr];
+          ampl2_int[ie] += ampl[ie+ne*ifr];
+          delay2_int[ie] += phase[ie+ne*ifr] / PI2 / freq[ifr];
         }
         ifr++;
         if(ifr<=nn/2){
@@ -328,7 +362,8 @@ if( abs(photar_sw) <= 10 ){
       for(ie=0;ie<ne;ie++){
         r_part_int[ie] /= ( ifr + 1 );
         im_part_int[ie] /= ( ifr + 1 );
-        delay_int[ie] /= ( ifr + 1 );
+        ampl2_int[ie] /= ( ifr + 1 );
+        delay2_int[ie] /= ( ifr + 1 );
       }
       for(ie=0;ie<ne;ie++){
         k2=0;
@@ -345,23 +380,45 @@ if( abs(photar_sw) <= 10 ){
       if(nbands>0){
         r_part_int_etot = r_part_bands[nbands-1];
         im_part_int_etot = im_part_bands[nbands-1];
-        delay_int_etot = 0;
+        ampl2_int_etot = 0;
+        delay2_int_etot = 0;
         ifr0=ifr;
         for( ifr=1;ifr<=ifr0;ifr++ ){
           r_part_int_etot += r_part_bands[nbands-1+nbands*ifr];
           im_part_int_etot += im_part_bands[nbands-1+nbands*ifr];
-          delay_int_etot += phase_bands[nbands-1+nbands*ifr] / PI2 / freq[ifr];
+          ampl2_int_etot += ampl_bands[nbands-1+nbands*ifr];
+          delay2_int_etot += phase_bands[nbands-1+nbands*ifr] / PI2 / freq[ifr];
         }
         r_part_int_etot /= ( ifr0+1 );
         im_part_int_etot /= ( ifr0+1 );
-        delay_int_etot /= ( ifr0+1 );
+        ampl2_int_etot /= ( ifr0+1 );
+        delay2_int_etot /= ( ifr0+1 );
         ampl_int_etot = sqrt( r_part_int_etot  * r_part_int_etot +
                               im_part_int_etot * im_part_int_etot );
         phase_int_etot = atan2(im_part_int_etot, r_part_int_etot);
+        if( exclude_energy && ( photar_sw == -7 || photar_sw == -8 ) ){
+          for(ie=0;ie<ne;ie++){
+            ampl2_int_etot2[ie] = 0;
+            delay2_int_etot2[ie] = 0;
+            ifr0=ifr;
+            for( ifr=1;ifr<=ifr0;ifr++ ){
+              ampl2_int_etot2[ie] += ampl_etot2[ie+ne*ifr];
+              delay2_int_etot2[ie] += phase_etot2[ie+ne*ifr] / PI2 / freq[ifr];
+            }
+            ampl2_int_etot2[ie] /= ( ifr0+1 );
+            delay2_int_etot2[ie] /= ( ifr0+1 );
+          }
+        }
       }else{
-        delay_int_etot = 0.;
+        ampl2_int_etot = 1.;
+        delay2_int_etot = 0.;
         ampl_int_etot = 1.;
         phase_int_etot = 0.;
+        if( photar_sw == -7 || photar_sw == -8 )
+          for(ie=0;ie<ne;ie++){
+            ampl2_int_etot2[ie] = 1.;
+            delay2_int_etot2[ie] = 0.;
+          }
       }
     }
 //including primary  
@@ -371,7 +428,8 @@ if( abs(photar_sw) <= 10 ){
       for(ie=0;ie<ne;ie++){
         r_part_tot_int[ie] = r_part_tot[ie];
         im_part_tot_int[ie] = im_part_tot[ie];
-        delay_tot_int[ie] = 0;
+        ampl2_tot_int[ie] = 0;
+        delay2_tot_int[ie] = 0;
       }
       ifr = 2;
       nonwrap = 1;
@@ -383,7 +441,8 @@ if( abs(photar_sw) <= 10 ){
         for(ie=0;ie<ne;ie++){
           r_part_tot_int[ie] += r_part_tot[ie+ne*ifr];
           im_part_tot_int[ie] += im_part_tot[ie+ne*ifr];
-          delay_tot_int[ie] += phase_tot[ie+ne*ifr] / PI2 / freq[ifr];
+          ampl2_tot_int[ie] += ampl_tot[ie+ne*ifr];
+          delay2_tot_int[ie] += phase_tot[ie+ne*ifr] / PI2 / freq[ifr];
         }
         ifr++;
         if(ifr<=nn/2){
@@ -400,7 +459,8 @@ if( abs(photar_sw) <= 10 ){
       for(ie=0;ie<ne;ie++){
         r_part_tot_int[ie] /= ( ifr+1 );
         im_part_tot_int[ie] /= ( ifr+1 );
-        delay_tot_int[ie] /= ( ifr+1 );
+        ampl2_tot_int[ie] /= ( ifr+1 );
+        delay2_tot_int[ie] /= ( ifr+1 );
       }
       for(ie=0;ie<ne;ie++){
         k2=0;
@@ -417,23 +477,45 @@ if( abs(photar_sw) <= 10 ){
       if(nbands>0){
         r_part_tot_int_etot = r_part_bands_tot[nbands-1];
         im_part_tot_int_etot = im_part_bands_tot[nbands-1];
-        delay_tot_int_etot = 0;
+        ampl2_tot_int_etot = 0;
+        delay2_tot_int_etot = 0;
         ifr0=ifr;
         for( ifr=1;ifr<=ifr0;ifr++){
           r_part_tot_int_etot += r_part_bands_tot[nbands-1+nbands*ifr];
           im_part_tot_int_etot += im_part_bands_tot[nbands-1+nbands*ifr];
-          delay_tot_int_etot += phase_bands_tot[nbands-1+nbands*ifr] / PI2 / freq[ifr];
+          ampl2_tot_int_etot += ampl_bands_tot[nbands-1+nbands*ifr];
+          delay2_tot_int_etot += phase_bands_tot[nbands-1+nbands*ifr] / PI2 / freq[ifr];
         }
         r_part_tot_int_etot /= ( ifr0+1 );
         im_part_tot_int_etot /= ( ifr0+1 );
-        delay_tot_int_etot /= ( ifr0+1 );
+        ampl2_tot_int_etot /= ( ifr0+1 );
+        delay2_tot_int_etot /= ( ifr0+1 );
         ampl_tot_int_etot = sqrt( r_part_tot_int_etot  * r_part_tot_int_etot +
                                   im_part_tot_int_etot * im_part_tot_int_etot );
         phase_tot_int_etot = atan2(im_part_tot_int_etot, r_part_tot_int_etot);
+        if( exclude_energy && ( photar_sw == 7 || photar_sw == 8 ) )
+          for(ie=0;ie<ne;ie++){
+            ampl2_tot_int_etot2[ie] = 0;
+            delay2_tot_int_etot2[ie] = 0;
+            ifr0=ifr;
+            for( ifr=1;ifr<=ifr0;ifr++ ){
+              ampl2_tot_int_etot2[ie] += ampl_tot_etot2[ie+ne*ifr];
+              delay2_tot_int_etot2[ie] += phase_tot_etot2[ie+ne*ifr] / PI2 / freq[ifr];
+            }
+            ampl2_tot_int_etot2[ie] /= ( ifr0+1 );
+            delay2_tot_int_etot2[ie] /= ( ifr0+1 );
+          }
       }else{
-        delay_tot_int_etot = 0.;
+        ampl2_tot_int_etot = 1.;
+        delay2_tot_int_etot = 0.;
         ampl_tot_int_etot = 1.;
         phase_tot_int_etot = 0.;
+        if( photar_sw == 7 || photar_sw == 8 ){
+          for(ie=0;ie<ne;ie++){
+            ampl2_tot_int_etot2[ie] = 1.;
+            delay2_tot_int_etot2[ie] = 0.;
+          }
+        }
       }
 #ifndef OUTSIDE_XSPEC
     }
@@ -499,33 +581,55 @@ if( abs(photar_sw) <= 10 && frequency1 > 0 && frequency1 < frequency2 ){
       for(ifr=ifr0+1;ifr<ifrn;ifr++) 
         im_part_fband[ie] += ( im_part[ie+ne*ifr] + 
                                im_part[ie+ne*(ifr-1)]) / 2. * freq[1];
-//  delay part (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//  amplitude (averaged over frequency, i.e. not from averaged Re and Im parts!)
+      y1 = ampl[ie+ne*(ifr0-1)];
+      y2 = ampl[ie+ne*ifr0];
+      y3 = ampl[ie+ne*(ifrn-1)];
+      y4 = ampl[ie+ne*ifrn];
+      if( ifr0 < ifrn ){
+        ampl2_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                              ampl[ie+ne*ifr0] ) / 2. *
+                            ( freq[ifr0] - frequency1 );
+        ampl2_fband[ie] += ( ampl[ie+ne*(ifrn-1)] + 
+                               (utmp1 * y3 + utmp * y4) ) / 2. *
+                             ( frequency2 - freq[ifrn-1] );
+      }else if( ifr0 == ifrn ){
+        ampl2_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                              (utmp1 * y3 + utmp * y4) ) / 2. *
+                            ( frequency2 - frequency1 );
+      }
+//    ...all the whole bins
+      for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+        ampl2_fband[ie] += ( ampl[ie+ne*ifr] + 
+                               ampl[ie+ne*(ifr-1)]) / 2. * freq[1];
+//  delay (averaged over frequency, i.e. not from averaged Re and Im parts!)
       y1 = phase[ie+ne*(ifr0-1)] / freq[ifr0-1];
       y2 = phase[ie+ne*ifr0] / freq[ifr0];
       y3 = phase[ie+ne*(ifrn-1)] / freq[ifrn-1];
       y4 = phase[ie+ne*ifrn] / freq[ifrn];
       if( ifr0 < ifrn ){
-        delay_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
                             phase[ie+ne*ifr0] / freq[ifr0] ) / 2. *
                           ( freq[ifr0] - frequency1 );
-        delay_fband[ie] += ( phase[ie+ne*(ifrn-1)] / freq[ifrn-1] + 
+        delay2_fband[ie] += ( phase[ie+ne*(ifrn-1)] / freq[ifrn-1] + 
                              (utmp1 * y3 + utmp * y4) ) / 2. *
                            ( frequency2 - freq[ifrn-1] );
       }else if( ifr0 == ifrn ){
-        delay_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
                             (utmp1 * y3 + utmp * y4) ) / 2. *
                           ( frequency2 - frequency1 );
       }
 //    ...all the whole bins
       for(ifr=ifr0+1;ifr<ifrn;ifr++) 
-        delay_fband[ie] += ( phase[ie+ne*ifr] / freq[ifr] + 
+        delay2_fband[ie] += ( phase[ie+ne*ifr] / freq[ifr] + 
                              phase[ie+ne*(ifr-1)] / freq[ifr-1] ) / 2. 
                              * freq[1];
     }
     for(ie=0;ie<ne;ie++){
       r_part_fband[ie] /= (frequency2 - frequency1);
       im_part_fband[ie] /= (frequency2 - frequency1);
-      delay_fband[ie] /= ( (frequency2 - frequency1) * PI2 );
+      ampl2_fband[ie] /= (frequency2 - frequency1);
+      delay2_fband[ie] /= ( (frequency2 - frequency1) * PI2 );
     }
     for(ie=0;ie<ne;ie++){
       k2=0;
@@ -581,38 +685,121 @@ if( abs(photar_sw) <= 10 && frequency1 > 0 && frequency1 < frequency2 ){
       for(ifr=ifr0+1;ifr<ifrn;ifr++) 
         im_part_fband_etot += ( im_part_bands[nbands-1+nbands*ifr] + 
                                 im_part_bands[nbands-1+nbands*(ifr-1)]) / 2. * freq[1];
-//    delay part (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    amplitude (averaged over frequency, i.e. not from averaged Re and Im parts!)
+      y1 = ampl_bands[nbands-1+nbands*(ifr0-1)];
+      y2 = ampl_bands[nbands-1+nbands*ifr0];
+      y3 = ampl_bands[nbands-1+nbands*(ifrn-1)];
+      y4 = ampl_bands[nbands-1+nbands*ifrn];
+      if( ifr0 < ifrn ){
+        ampl2_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+                               ampl_bands[nbands-1+nbands*ifr0] ) / 2. *
+                             ( freq[ifr0] - frequency1 );
+        ampl2_fband_etot += ( ampl_bands[nbands-1+nbands*(ifrn-1)] + 
+                                (utmp1 * y3 + utmp * y4) ) / 2. *
+                              ( frequency2 - freq[ifrn-1] );
+      }else if( ifr0 == ifrn ){
+        ampl2_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+                               (utmp1 * y3 + utmp * y4) ) / 2. *
+                             ( frequency2 - frequency1 );
+      }
+//    ...all the whole bins
+      for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+        ampl2_fband_etot += ( ampl_bands[nbands-1+nbands*ifr] + 
+                              ampl_bands[nbands-1+nbands*(ifr-1)]) / 2. * freq[1];
+//    delay (averaged over frequency, i.e. not from averaged Re and Im parts!)
       y1 = phase_bands[nbands-1+nbands*(ifr0-1)] / freq[ifr0-1];
       y2 = phase_bands[nbands-1+nbands*ifr0] / freq[ifr0];
       y3 = phase_bands[nbands-1+nbands*(ifrn-1)] / freq[ifrn-1];
       y4 = phase_bands[nbands-1+nbands*ifrn] / freq[ifrn];
       if( ifr0 < ifrn ){
-        delay_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
                              phase_bands[nbands-1+nbands*ifr0] / freq[ifr0] ) / 2. *
                            ( freq[ifr0] - frequency1 );
-        delay_fband_etot += ( phase_bands[nbands-1+nbands*(ifrn-1)] / freq[ifrn-1] + 
+        delay2_fband_etot += ( phase_bands[nbands-1+nbands*(ifrn-1)] / freq[ifrn-1] + 
                               (utmp1 * y3 + utmp * y4) ) / 2. *
                             ( frequency2 - freq[ifrn-1] );
       }else if( ifr0 == ifrn ){
-        delay_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
                              (utmp1 * y3 + utmp * y4) ) / 2. *
                            ( frequency2 - frequency1 );
       }
 //    ...all the whole bins
       for(ifr=ifr0+1;ifr<ifrn;ifr++)
-        delay_fband_etot += ( phase_bands[nbands-1+nbands*ifr] / freq[ifr] + 
+        delay2_fband_etot += ( phase_bands[nbands-1+nbands*ifr] / freq[ifr] + 
                               phase_bands[nbands-1+nbands*(ifr-1)] / freq[ifr-1] ) / 2. 
                               * freq[1];
       r_part_fband_etot /= (frequency2 - frequency1);
       im_part_fband_etot /= (frequency2 - frequency1);
-      delay_fband_etot /= ( (frequency2 - frequency1) * PI2 );
+      ampl2_fband_etot /= (frequency2 - frequency1);
+      delay2_fband_etot /= ( (frequency2 - frequency1) * PI2 );
       ampl_fband_etot  = sqrt( r_part_fband_etot  * r_part_fband_etot +
                                im_part_fband_etot * im_part_fband_etot );
       phase_fband_etot = atan2(im_part_fband_etot, r_part_fband_etot);
+//    amplitude (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    computed for the whole energy range except current bin
+      if( exclude_energy && photar_sw == -7 ){
+        for(ie=0;ie<ne;ie++){
+          y1 = ampl_etot2[ie+ne*(ifr0-1)];
+          y2 = ampl_etot2[ie+ne*ifr0];
+          y3 = ampl_etot2[ie+ne*(ifrn-1)];
+          y4 = ampl_etot2[ie+ne*ifrn];
+          if( ifr0 < ifrn ){
+            ampl2_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                   ampl_etot2[ie+ne*ifr0] ) / 2. *
+                                 ( freq[ifr0] - frequency1 );
+            ampl2_fband_etot2[ie] += ( ampl_etot2[ie+ne*(ifrn-1)] + 
+                                    (utmp1 * y3 + utmp * y4) ) / 2. *
+                                  ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            ampl2_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                   (utmp1 * y3 + utmp * y4) ) / 2. *
+                                 ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            ampl2_fband_etot2[ie] += ( ampl_etot2[ie+ne*ifr] + 
+                                  ampl_etot2[ie+ne*(ifr-1)]) / 2. * freq[1];
+          ampl2_fband_etot2[ie] /= (frequency2 - frequency1);
+        }
+      }
+//    delay (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    computed for the whole energy range except current bin
+      if( exclude_energy && photar_sw == -8 ){
+        for(ie=0;ie<ne;ie++){
+          y1 = phase_etot2[ie+ne*(ifr0-1)] / freq[ifr0-1];
+          y2 = phase_etot2[ie+ne*ifr0] / freq[ifr0];
+          y3 = phase_etot2[ie+ne*(ifrn-1)] / freq[ifrn-1];
+          y4 = phase_etot2[ie+ne*ifrn] / freq[ifrn];
+          if( ifr0 < ifrn ){
+            delay2_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                 phase_etot2[ie+ne*ifr0] / freq[ifr0] ) / 2. *
+                               ( freq[ifr0] - frequency1 );
+            delay2_fband_etot2[ie] += ( phase_etot2[ie+ne*(ifrn-1)] / freq[ifrn-1] + 
+                                  (utmp1 * y3 + utmp * y4) ) / 2. *
+                                ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            delay2_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                 (utmp1 * y3 + utmp * y4) ) / 2. *
+                               ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++)
+            delay2_fband_etot2[ie] += ( phase_etot2[ie+ne*ifr] / freq[ifr] + 
+                                  phase_etot2[ie+ne*(ifr-1)] / freq[ifr-1] ) / 2. 
+                                  * freq[1];
+          delay2_fband_etot2[ie] /= ( (frequency2 - frequency1) * PI2 );
+        }
+      }
     }else{
-      delay_fband_etot = 0.;
+      ampl2_fband_etot = 1.;
+      delay2_fband_etot = 0.;
       ampl_fband_etot = 1.;
       phase_fband_etot = 0.;
+      if( photar_sw == -7 || photar_sw == -8 )
+        for(ie=0;ie<ne;ie++){
+          ampl2_fband_etot2[ie] = 1.;
+          delay2_fband_etot2[ie] = 0.;
+        }
     }
   }
 //including primary
@@ -662,33 +849,55 @@ if( abs(photar_sw) <= 10 && frequency1 > 0 && frequency1 < frequency2 ){
       for(ifr=ifr0+1;ifr<ifrn;ifr++) 
         im_part_tot_fband[ie] += ( im_part_tot[ie+ne*ifr] + 
                                    im_part_tot[ie+ne*(ifr-1)]) / 2. * freq[1];
-//    delay part (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    amplitude (averaged over frequency, i.e. not from averaged Re and Im parts!)
+      y1 = ampl_tot[ie+ne*(ifr0-1)];
+      y2 = ampl_tot[ie+ne*ifr0];
+      y3 = ampl_tot[ie+ne*(ifrn-1)];
+      y4 = ampl_tot[ie+ne*ifrn];
+      if( ifr0 < ifrn ){
+        ampl2_tot_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                  ampl_tot[ie+ne*ifr0] ) / 2. *
+                                ( freq[ifr0] - frequency1 );
+        ampl2_tot_fband[ie] += ( ampl_tot[ie+ne*(ifrn-1)] + 
+                                   (utmp1 * y3 + utmp * y4) ) / 2. *
+                                 ( frequency2 - freq[ifrn-1] );
+      }else if( ifr0 == ifrn ){
+        ampl2_tot_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                  (utmp1 * y3 + utmp * y4) ) / 2. *
+                                ( frequency2 - frequency1 );
+      }
+//    ...all the whole bins
+      for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+        ampl2_tot_fband[ie] += ( ampl_tot[ie+ne*ifr] + 
+                                 ampl_tot[ie+ne*(ifr-1)]) / 2. * freq[1];
+//    delay (averaged over frequency, i.e. not from averaged Re and Im parts!)
       y1 = phase_tot[ie+ne*(ifr0-1)] / freq[ifr0-1];
       y2 = phase_tot[ie+ne*ifr0] / freq[ifr0];
       y3 = phase_tot[ie+ne*(ifrn-1)] / freq[ifrn-1];
       y4 = phase_tot[ie+ne*ifrn] / freq[ifrn];
       if( ifr0 < ifrn ){
-        delay_tot_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_tot_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
                                 phase_tot[ie+ne*ifr0] / freq[ifr0] ) / 2. *
                               ( freq[ifr0] - frequency1 );
-        delay_tot_fband[ie] += ( phase_tot[ie+ne*(ifrn-1)] / freq[ifrn-1] + 
+        delay2_tot_fband[ie] += ( phase_tot[ie+ne*(ifrn-1)] / freq[ifrn-1] + 
                                  (utmp1 * y3 + utmp * y4) ) / 2. *
                                ( frequency2 - freq[ifrn-1] );
       }else if( ifr0 == ifrn ){
-        delay_tot_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_tot_fband[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
                                 (utmp1 * y3 + utmp * y4) ) / 2. *
-                              ( frequency2 - frequency1 );
+                               ( frequency2 - frequency1 );
       }
 //    ...all the whole bins
       for(ifr=ifr0+1;ifr<ifrn;ifr++) 
-        delay_tot_fband[ie] += ( phase_tot[ie+ne*ifr] / freq[ifr] + 
-                                 phase_tot[ie+ne*(ifr-1)] / freq[ifr-1] ) / 2. 
-                                 * freq[1];
+        delay2_tot_fband[ie] += ( phase_tot[ie+ne*ifr] / freq[ifr] + 
+                                  phase_tot[ie+ne*(ifr-1)] / freq[ifr-1] ) / 2. 
+                                  * freq[1];
     }
     for(ie=0;ie<ne;ie++){
       r_part_tot_fband[ie] /= (frequency2 - frequency1);
       im_part_tot_fband[ie] /= (frequency2 - frequency1);
-      delay_tot_fband[ie] /= ( (frequency2 - frequency1) * PI2 );
+      ampl2_tot_fband[ie] /= (frequency2 - frequency1);
+      delay2_tot_fband[ie] /= ( (frequency2 - frequency1) * PI2 );
     }
     for(ie=0;ie<ne;ie++){
       k2=0;
@@ -744,38 +953,121 @@ if( abs(photar_sw) <= 10 && frequency1 > 0 && frequency1 < frequency2 ){
       for(ifr=ifr0+1;ifr<ifrn;ifr++) 
         im_part_tot_fband_etot += ( im_part_bands_tot[nbands-1+nbands*ifr] + 
                                     im_part_bands_tot[nbands-1+nbands*(ifr-1)]) / 2. * freq[1];
-//    delay part (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    amplitude (averaged over frequency, i.e. not from averaged Re and Im parts!)
+      y1 = ampl_bands_tot[nbands-1+nbands*(ifr0-1)];
+      y2 = ampl_bands_tot[nbands-1+nbands*ifr0];
+      y3 = ampl_bands_tot[nbands-1+nbands*(ifrn-1)];
+      y4 = ampl_bands_tot[nbands-1+nbands*ifrn];
+      if( ifr0 < ifrn ){
+        ampl2_tot_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+                                   ampl_bands_tot[nbands-1+nbands*ifr0] ) / 2. *
+                                 ( freq[ifr0] - frequency1 );
+        ampl2_tot_fband_etot += ( ampl_bands_tot[nbands-1+nbands*(ifrn-1)] + 
+                                    (utmp1 * y3 + utmp * y4) ) / 2. *
+                                  ( frequency2 - freq[ifrn-1] );
+      }else if( ifr0 == ifrn ){
+        ampl2_tot_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+                                   (utmp1 * y3 + utmp * y4) ) / 2. *
+                                 ( frequency2 - frequency1 );
+      }
+//    ...all the whole bins
+      for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+        ampl2_tot_fband_etot += ( ampl_bands_tot[nbands-1+nbands*ifr] + 
+                                  ampl_bands_tot[nbands-1+nbands*(ifr-1)]) / 2. * freq[1];
+//    delay (averaged over frequency, i.e. not from averaged Re and Im parts!)
       y1 = phase_bands_tot[nbands-1+nbands*(ifr0-1)] / freq[ifr0-1];
       y2 = phase_bands_tot[nbands-1+nbands*ifr0] / freq[ifr0];
       y3 = phase_bands_tot[nbands-1+nbands*(ifrn-1)] / freq[ifrn-1];
       y4 = phase_bands_tot[nbands-1+nbands*ifrn] / freq[ifrn];
       if( ifr0 < ifrn ){
-        delay_tot_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_tot_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
                                  phase_bands_tot[nbands-1+nbands*ifr0] / freq[ifr0] ) / 2. *
                                ( freq[ifr0] - frequency1 );
-        delay_tot_fband_etot += ( phase_bands_tot[nbands-1+nbands*(ifrn-1)] / freq[ifrn-1] + 
+        delay2_tot_fband_etot += ( phase_bands_tot[nbands-1+nbands*(ifrn-1)] / freq[ifrn-1] + 
                                   (utmp1 * y3 + utmp * y4) ) / 2. *
                                 ( frequency2 - freq[ifrn-1] );
       }else if( ifr0 == ifrn ){
-        delay_tot_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
+        delay2_tot_fband_etot = ( (ttmp1 * y1 + ttmp * y2) + 
                                  (utmp1 * y3 + utmp * y4) ) / 2. *
                                ( frequency2 - frequency1 );
       }
 //    ...all the whole bins
       for(ifr=ifr0+1;ifr<ifrn;ifr++)
-        delay_tot_fband_etot += ( phase_bands_tot[nbands-1+nbands*ifr] / freq[ifr] + 
+        delay2_tot_fband_etot += ( phase_bands_tot[nbands-1+nbands*ifr] / freq[ifr] + 
                                   phase_bands_tot[nbands-1+nbands*(ifr-1)] / freq[ifr-1] ) / 2. 
                                   * freq[1];
       r_part_tot_fband_etot /= (frequency2 - frequency1);
       im_part_tot_fband_etot /= (frequency2 - frequency1);
-      delay_tot_fband_etot /= ( (frequency2 - frequency1) * PI2 );
+      ampl2_tot_fband_etot /= (frequency2 - frequency1);
+      delay2_tot_fband_etot /= ( (frequency2 - frequency1) * PI2 );
       ampl_tot_fband_etot  = sqrt( r_part_tot_fband_etot  * r_part_tot_fband_etot +
                                    im_part_tot_fband_etot * im_part_tot_fband_etot );
       phase_tot_fband_etot = atan2(im_part_tot_fband_etot, r_part_tot_fband_etot);
+//    amplitude (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    computed for the whole energy range except current bin
+      if( exclude_energy && photar_sw == 7){
+        for(ie=0;ie<ne;ie++){
+          y1 = ampl_tot_etot2[ie+ne*(ifr0-1)];
+          y2 = ampl_tot_etot2[ie+ne*ifr0];
+          y3 = ampl_tot_etot2[ie+ne*(ifrn-1)];
+          y4 = ampl_tot_etot2[ie+ne*ifrn];
+          if( ifr0 < ifrn ){
+            ampl2_tot_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                       ampl_tot_etot2[ie+ne*ifr0] ) / 2. *
+                                     ( freq[ifr0] - frequency1 );
+            ampl2_tot_fband_etot2[ie] += ( ampl_tot_etot2[ie+ne*(ifrn-1)] + 
+                                        (utmp1 * y3 + utmp * y4) ) / 2. *
+                                      ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            ampl2_tot_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                       (utmp1 * y3 + utmp * y4) ) / 2. *
+                                     ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            ampl2_tot_fband_etot2[ie] += ( ampl_tot_etot2[ie+ne*ifr] + 
+                                           ampl_tot_etot2[ie+ne*(ifr-1)]) / 2. * freq[1];
+          ampl2_tot_fband_etot2[ie] /= (frequency2 - frequency1);
+        }
+      }
+//    delay (averaged over frequency, i.e. not from averaged Re and Im parts!)
+//    computed for the whole energy range except current bin
+      if( exclude_energy && photar_sw == 8 ){
+        for(ie=0;ie<ne;ie++){
+          y1 = phase_tot_etot2[ie+ne*(ifr0-1)] / freq[ifr0-1];
+          y2 = phase_tot_etot2[ie+ne*ifr0] / freq[ifr0];
+          y3 = phase_tot_etot2[ie+ne*(ifrn-1)] / freq[ifrn-1];
+          y4 = phase_tot_etot2[ie+ne*ifrn] / freq[ifrn];
+          if( ifr0 < ifrn ){
+            delay2_tot_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                     phase_tot_etot2[ie+ne*ifr0] / freq[ifr0] ) / 2. *
+                                   ( freq[ifr0] - frequency1 );
+            delay2_tot_fband_etot2[ie] += ( phase_tot_etot2[ie+ne*(ifrn-1)] / freq[ifrn-1] + 
+                                      (utmp1 * y3 + utmp * y4) ) / 2. *
+                                    ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            delay2_tot_fband_etot2[ie] = ( (ttmp1 * y1 + ttmp * y2) + 
+                                     (utmp1 * y3 + utmp * y4) ) / 2. *
+                                   ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++)
+            delay2_tot_fband_etot2[ie] += ( phase_tot_etot2[ie+ne*ifr] / freq[ifr] + 
+                                      phase_tot_etot2[ie+ne*(ifr-1)] / freq[ifr-1] ) / 2. 
+                                      * freq[1];
+          delay2_tot_fband_etot2[ie] /= ( (frequency2 - frequency1) * PI2 );
+        }
+      }
     }else{
-      delay_tot_fband_etot = 0.;
+      ampl2_tot_fband_etot = 1.;
+      delay2_tot_fband_etot = 0.;
       ampl_tot_fband_etot = 1.;
       phase_tot_fband_etot = 0.;
+      if( photar_sw == 7 || photar_sw == 8 )
+        for(ie=0;ie<ne;ie++){
+          ampl2_tot_fband_etot2[ie] = 1.;
+          delay2_tot_fband_etot2[ie] = 0.;
+        }
     }
 #ifndef OUTSIDE_XSPEC
   }
@@ -788,11 +1080,19 @@ if( abs(photar_sw) > 10 && nbands > 0){
   for( iband = 0; iband < nbands; iband += ( nbands > 1 ? (nbands-1) : 1 ) ){
     for(ifreq=0;ifreq<ne;ifreq++){
       if(photar_sw < 0){
-        r_part_bands_rebin[iiband+2*ifreq]=0.;
-        im_part_bands_rebin[iiband+2*ifreq]=0.;
+        if(photar_sw == -17)ampl2_bands_rebin[iiband+2*ifreq]=0.;
+        else if(photar_sw == -18)delay2_bands_rebin[iiband+2*ifreq]=0.;
+        else{
+          r_part_bands_rebin[iiband+2*ifreq]=0.;
+          im_part_bands_rebin[iiband+2*ifreq]=0.;
+        }
       }else if(photar_sw > 0){
-        r_part_bands_tot_rebin[iiband+2*ifreq]=0.;
-        im_part_bands_tot_rebin[iiband+2*ifreq]=0.;
+        if(photar_sw == 17)ampl2_bands_tot_rebin[iiband+2*ifreq]=0.;
+        else if(photar_sw == 18)delay2_bands_tot_rebin[iiband+2*ifreq]=0.;
+        else{
+          r_part_bands_tot_rebin[iiband+2*ifreq]=0.;
+          im_part_bands_tot_rebin[iiband+2*ifreq]=0.;
+        }
       }
 //    given frequency1 given by ear[ifreq] and frequency2 at ear[ifreq+1], 
 //    find the corresponding index in freq[]:
@@ -815,104 +1115,200 @@ if( abs(photar_sw) > 10 && nbands > 0){
       utmp1 = 1. - utmp;
 //    just reflection
       if(photar_sw < 0){
-//      real part
-        y1 = r_part_bands[iband+nbands*(ifr0-1)];
-        y2 = r_part_bands[iband+nbands*ifr0];
-        y3 = r_part_bands[iband+nbands*(ifrn-1)];
-        y4 = r_part_bands[iband+nbands*ifrn];
-        if( ifr0 < ifrn ){
-          r_part_bands_rebin[iiband+2*ifreq] += 
-            ( (ttmp1 * y1 + ttmp * y2) + r_part_bands[iband+nbands*ifr0] )
-            / 2. * ( freq[ifr0] - frequency1 );
-          r_part_bands_rebin[iiband+2*ifreq] += 
-            ( r_part_bands[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
-            / 2. * ( frequency2 - freq[ifrn-1] );
-        }else if( ifr0 == ifrn ){
-          r_part_bands_rebin[iiband+2*ifreq] += 
+        if(photar_sw == -17){
+//      direct amplitude rebinnig
+          y1 = ampl_bands[iband+nbands*(ifr0-1)];
+          y2 = ampl_bands[iband+nbands*ifr0];
+          y3 = ampl_bands[iband+nbands*(ifrn-1)];
+          y4 = ampl_bands[iband+nbands*ifrn];
+          if( ifr0 < ifrn ){
+            ampl2_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + ampl_bands[iband+nbands*ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            ampl2_bands_rebin[iiband+2*ifreq] += 
+              ( ampl_bands[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            ampl2_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            ampl2_bands_rebin[iiband+2*ifreq] += 
+              ( ampl_bands[iband+nbands*ifr] + ampl_bands[iband+nbands*(ifr-1)]) 
+              / 2. * freq[1];
+        }else if(photar_sw == -18){
+//      direct delay rebinnig
+          y1 = phase_bands[iband+nbands*(ifr0-1)] / PI2 / freq[ifr0-1];
+          y2 = phase_bands[iband+nbands*ifr0] / PI2 / freq[ifr0];
+          y3 = phase_bands[iband+nbands*(ifrn-1)] / PI2 / freq[ifrn-1];
+          y4 = phase_bands[iband+nbands*ifrn] / PI2 / freq[ifrn];
+          if( ifr0 < ifrn ){
+            delay2_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + phase_bands[iband+nbands*ifr0] / PI2 / freq[ifr0])
+              / 2. * ( freq[ifr0] - frequency1 );
+            delay2_bands_rebin[iiband+2*ifreq] += 
+              ( phase_bands[iband+nbands*(ifrn-1)] / PI2 / freq[ifrn-1] + 
+              (utmp1 * y3 + utmp * y4) ) / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            delay2_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            delay2_bands_rebin[iiband+2*ifreq] += 
+              ( phase_bands[iband+nbands*ifr] / freq[ifr] + phase_bands[iband+nbands*(ifr-1)] / freq[ifr-1]) / PI2 
+              / 2. * freq[1];
+        }else{
+//        real part
+          y1 = r_part_bands[iband+nbands*(ifr0-1)];
+          y2 = r_part_bands[iband+nbands*ifr0];
+          y3 = r_part_bands[iband+nbands*(ifrn-1)];
+          y4 = r_part_bands[iband+nbands*ifrn];
+          if( ifr0 < ifrn ){
+            r_part_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + r_part_bands[iband+nbands*ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            r_part_bands_rebin[iiband+2*ifreq] += 
+              ( r_part_bands[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            r_part_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            r_part_bands_rebin[iiband+2*ifreq] += 
+              ( r_part_bands[iband+nbands*ifr] + r_part_bands[iband+nbands*(ifr-1)]) 
+              / 2. * freq[1];
+//        imaginary part
+          y1 = im_part_bands[iband+nbands*(ifr0-1)];
+          y2 = im_part_bands[iband+nbands*ifr0];
+          y3 = im_part_bands[iband+nbands*(ifrn-1)];
+          y4 = im_part_bands[iband+nbands*ifrn];
+          if( ifr0 < ifrn ){
+            im_part_bands_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + im_part_bands[iband+nbands*ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            im_part_bands_rebin[iiband+2*ifreq] += 
+              ( im_part_bands[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            im_part_bands_rebin[iiband+2*ifreq] += 
             ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
             / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            im_part_bands_rebin[iiband+2*ifreq] += 
+              ( im_part_bands[iband+nbands*ifr] + im_part_bands[iband+nbands*(ifr-1)])
+              / 2. * freq[1];
+          ampl_bands_rebin[iiband+2*ifreq]  = 
+            sqrt( r_part_bands_rebin[iiband+2*ifreq]  * r_part_bands_rebin[iiband+2*ifreq] +
+                  im_part_bands_rebin[iiband+2*ifreq] * im_part_bands_rebin[iiband+2*ifreq] );
+          phase_bands_rebin[iiband+2*ifreq] = atan2(im_part_bands_rebin[iiband+2*ifreq], r_part_bands_rebin[iiband+2*ifreq]);
         }
-//      ...all the whole bins
-        for(ifr=ifr0+1;ifr<ifrn;ifr++) 
-          r_part_bands_rebin[iiband+2*ifreq] += 
-            ( r_part_bands[iband+nbands*ifr] + r_part_bands[iband+nbands*(ifr-1)]) 
-            / 2. * freq[1];
-//      imaginary part
-        y1 = im_part_bands[iband+nbands*(ifr0-1)];
-        y2 = im_part_bands[iband+nbands*ifr0];
-        y3 = im_part_bands[iband+nbands*(ifrn-1)];
-        y4 = im_part_bands[iband+nbands*ifrn];
-        if( ifr0 < ifrn ){
-          im_part_bands_rebin[iiband+2*ifreq] += 
-            ( (ttmp1 * y1 + ttmp * y2) + im_part_bands[iband+nbands*ifr0] )
-            / 2. * ( freq[ifr0] - frequency1 );
-          im_part_bands_rebin[iiband+2*ifreq] += 
-            ( im_part_bands[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
-            / 2. * ( frequency2 - freq[ifrn-1] );
-        }else if( ifr0 == ifrn ){
-          im_part_bands_rebin[iiband+2*ifreq] += 
-          ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
-          / 2. * ( frequency2 - frequency1 );
-        }
-//      ...all the whole bins
-        for(ifr=ifr0+1;ifr<ifrn;ifr++) 
-          im_part_bands_rebin[iiband+2*ifreq] += 
-            ( im_part_bands[iband+nbands*ifr] + im_part_bands[iband+nbands*(ifr-1)])
-            / 2. * freq[1];
-        ampl_bands_rebin[iiband+2*ifreq]  = 
-          sqrt( r_part_bands_rebin[iiband+2*ifreq]  * r_part_bands_rebin[iiband+2*ifreq] +
-                im_part_bands_rebin[iiband+2*ifreq] * im_part_bands_rebin[iiband+2*ifreq] );
-        phase_bands_rebin[iiband+2*ifreq] = atan2(im_part_bands_rebin[iiband+2*ifreq], r_part_bands_rebin[iiband+2*ifreq]);
 //    including primary
       }else if(photar_sw > 0){
-//      real part
-        y1 = r_part_bands_tot[iband+nbands*(ifr0-1)];
-        y2 = r_part_bands_tot[iband+nbands*ifr0];
-        y3 = r_part_bands_tot[iband+nbands*(ifrn-1)];
-        y4 = r_part_bands_tot[iband+nbands*ifrn];
-        if( ifr0 < ifrn ){
-          r_part_bands_tot_rebin[iiband+2*ifreq] += 
-            ( (ttmp1 * y1 + ttmp * y2) + r_part_bands_tot[iband+nbands*ifr0] )
-            / 2. * ( freq[ifr0] - frequency1 );
-          r_part_bands_tot_rebin[iiband+2*ifreq] += 
-            ( r_part_bands_tot[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
-            / 2. * ( frequency2 - freq[ifrn-1] );
-        }else if( ifr0 == ifrn ){
-          r_part_bands_tot_rebin[iiband+2*ifreq] += 
+        if(photar_sw == 17){
+//      direct amplitude rebinnig
+          y1 = ampl_bands_tot[iband+nbands*(ifr0-1)];
+          y2 = ampl_bands_tot[iband+nbands*ifr0];
+          y3 = ampl_bands_tot[iband+nbands*(ifrn-1)];
+          y4 = ampl_bands_tot[iband+nbands*ifrn];
+          if( ifr0 < ifrn ){
+            ampl2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + ampl_bands_tot[iband+nbands*ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            ampl2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( ampl_bands_tot[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            ampl2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            ampl2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( ampl_bands_tot[iband+nbands*ifr] + ampl_bands_tot[iband+nbands*(ifr-1)]) 
+              / 2. * freq[1];
+        }else if(photar_sw == 18){
+//      direct delay rebinnig
+          y1 = phase_bands_tot[iband+nbands*(ifr0-1)] / PI2 / freq[ifr0-1];
+          y2 = phase_bands_tot[iband+nbands*ifr0] / PI2 / freq[ifr0];
+          y3 = phase_bands_tot[iband+nbands*(ifrn-1)] / PI2 / freq[ifrn-1];
+          y4 = phase_bands_tot[iband+nbands*ifrn] / PI2 / freq[ifrn];
+          if( ifr0 < ifrn ){
+            delay2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + phase_bands_tot[iband+nbands*ifr0] / PI2 / freq[ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            delay2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( phase_bands_tot[iband+nbands*(ifrn-1)] / PI2 / freq[ifrn-1] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            delay2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            delay2_bands_tot_rebin[iiband+2*ifreq] += 
+              ( phase_bands_tot[iband+nbands*ifr] / freq[ifr] + phase_bands_tot[iband+nbands*(ifr-1)] / freq[ifr-1] ) / PI2 
+              / 2. * freq[1];
+        }else{
+//        real part
+          y1 = r_part_bands_tot[iband+nbands*(ifr0-1)];
+          y2 = r_part_bands_tot[iband+nbands*ifr0];
+          y3 = r_part_bands_tot[iband+nbands*(ifrn-1)];
+          y4 = r_part_bands_tot[iband+nbands*ifrn];
+          if( ifr0 < ifrn ){
+            r_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + r_part_bands_tot[iband+nbands*ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            r_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( r_part_bands_tot[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            r_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            r_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( r_part_bands_tot[iband+nbands*ifr] + r_part_bands_tot[iband+nbands*(ifr-1)]) 
+              / 2. * freq[1];
+//        imaginary part
+          y1 = im_part_bands_tot[iband+nbands*(ifr0-1)];
+          y2 = im_part_bands_tot[iband+nbands*ifr0];
+          y3 = im_part_bands_tot[iband+nbands*(ifrn-1)];
+          y4 = im_part_bands_tot[iband+nbands*ifrn];
+          if( ifr0 < ifrn ){
+            im_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( (ttmp1 * y1 + ttmp * y2) + im_part_bands_tot[iband+nbands*ifr0] )
+              / 2. * ( freq[ifr0] - frequency1 );
+            im_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( im_part_bands_tot[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
+              / 2. * ( frequency2 - freq[ifrn-1] );
+          }else if( ifr0 == ifrn ){
+            im_part_bands_tot_rebin[iiband+2*ifreq] += 
             ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
             / 2. * ( frequency2 - frequency1 );
+          }
+//        ...all the whole bins
+          for(ifr=ifr0+1;ifr<ifrn;ifr++) 
+            im_part_bands_tot_rebin[iiband+2*ifreq] += 
+              ( im_part_bands_tot[iband+nbands*ifr] + im_part_bands_tot[iband+nbands*(ifr-1)])
+              / 2. * freq[1];
+          ampl_bands_tot_rebin[iiband+2*ifreq]  = 
+            sqrt( r_part_bands_tot_rebin[iiband+2*ifreq]  * r_part_bands_tot_rebin[iiband+2*ifreq] +
+                  im_part_bands_tot_rebin[iiband+2*ifreq] * im_part_bands_tot_rebin[iiband+2*ifreq] );
+          phase_bands_tot_rebin[iiband+2*ifreq] = atan2(im_part_bands_tot_rebin[iiband+2*ifreq], r_part_bands_tot_rebin[iiband+2*ifreq]);
         }
-//      ...all the whole bins
-        for(ifr=ifr0+1;ifr<ifrn;ifr++) 
-          r_part_bands_tot_rebin[iiband+2*ifreq] += 
-            ( r_part_bands_tot[iband+nbands*ifr] + r_part_bands_tot[iband+nbands*(ifr-1)]) 
-            / 2. * freq[1];
-//      imaginary part
-        y1 = im_part_bands_tot[iband+nbands*(ifr0-1)];
-        y2 = im_part_bands_tot[iband+nbands*ifr0];
-        y3 = im_part_bands_tot[iband+nbands*(ifrn-1)];
-        y4 = im_part_bands_tot[iband+nbands*ifrn];
-        if( ifr0 < ifrn ){
-          im_part_bands_tot_rebin[iiband+2*ifreq] += 
-            ( (ttmp1 * y1 + ttmp * y2) + im_part_bands_tot[iband+nbands*ifr0] )
-            / 2. * ( freq[ifr0] - frequency1 );
-          im_part_bands_tot_rebin[iiband+2*ifreq] += 
-            ( im_part_bands_tot[iband+nbands*(ifrn-1)] + (utmp1 * y3 + utmp * y4) )
-            / 2. * ( frequency2 - freq[ifrn-1] );
-        }else if( ifr0 == ifrn ){
-          im_part_bands_tot_rebin[iiband+2*ifreq] += 
-          ( (ttmp1 * y1 + ttmp * y2) + (utmp1 * y3 + utmp * y4) )
-          / 2. * ( frequency2 - frequency1 );
-        }
-//      ...all the whole bins
-        for(ifr=ifr0+1;ifr<ifrn;ifr++) 
-          im_part_bands_tot_rebin[iiband+2*ifreq] += 
-            ( im_part_bands_tot[iband+nbands*ifr] + im_part_bands_tot[iband+nbands*(ifr-1)])
-            / 2. * freq[1];
-        ampl_bands_tot_rebin[iiband+2*ifreq]  = 
-          sqrt( r_part_bands_tot_rebin[iiband+2*ifreq]  * r_part_bands_tot_rebin[iiband+2*ifreq] +
-                im_part_bands_tot_rebin[iiband+2*ifreq] * im_part_bands_tot_rebin[iiband+2*ifreq] );
-        phase_bands_tot_rebin[iiband+2*ifreq] = atan2(im_part_bands_tot_rebin[iiband+2*ifreq], r_part_bands_tot_rebin[iiband+2*ifreq]);
       }
     }
     iiband++;
@@ -1075,12 +1471,12 @@ if(abs(photar_sw)<=10){
     fprintf(fw1, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", 
             (ear[ie]+ear[ie+1])/2.,
             r_part_tot_int[ie], im_part_tot_int[ie], ampl_tot_int[ie], 
-            phase_tot_int[ie], phase_tot_int_u2[ie], delay_tot_int[ie],
+            phase_tot_int[ie], phase_tot_int_u2[ie], delay2_tot_int[ie],
             ampl_tot_int[ie]/ampl_tot_int_etot,
 // we will use relative delay with respect to the whole energy band and redefine to be positive
             -(phase_tot_int[ie]-phase_tot_int_etot)/PI/freq_wrap0,
             -(phase_tot_int_u2[ie]-phase_tot_int_etot)/PI/freq_wrap0,
-            -(delay_tot_int[ie]-delay_tot_int_etot),
+            -(delay2_tot_int[ie]-delay2_tot_int_etot),
 // and we will also exclude the current energy bin from total
             ampl_tot_int[ie]/sqrt(
               ( r_part_tot_int_etot- r_part_tot_int[ie])*( r_part_tot_int_etot- r_part_tot_int[ie])+
@@ -1101,12 +1497,12 @@ if(abs(photar_sw)<=10){
     fprintf(fw1, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", 
             (ear[ie]+ear[ie+1])/2.,
             r_part_tot_fband[ie], im_part_tot_fband[ie], ampl_tot_fband[ie], 
-            phase_tot_fband[ie], phase_tot_fband_u2[ie], delay_tot_fband[ie],
+            phase_tot_fband[ie], phase_tot_fband_u2[ie], delay2_tot_fband[ie],
             ampl_tot_fband[ie]/ampl_tot_fband_etot,
 // we will use relative delay with respect to the whole energy band and redefine to be positive
             -(phase_tot_fband[ie]-phase_tot_fband_etot)/PI/(frequency1+frequency2),
             -(phase_tot_fband_u2[ie]-phase_tot_fband_etot)/PI/(frequency1+frequency2), 
-            -(delay_tot_fband[ie]-delay_tot_fband_etot),
+            -(delay2_tot_fband[ie]-delay2_tot_fband_etot),
 // and we will also exclude the current energy bin from total
             ampl_tot_fband[ie]/sqrt(
               ( r_part_tot_fband_etot- r_part_tot_fband[ie])*( r_part_tot_fband_etot- r_part_tot_fband[ie])+
@@ -1133,8 +1529,9 @@ if(abs(photar_sw)<=10){
                  far_prim[ie] * r_part_int[ie];
           utmp1 = flux_bands_prim[nbands-1] * im_part_int_etot -
                   far_prim[ie] * im_part_int[ie];
-          photar[ie] = flux_bands_prim[nbands-1] * ampl_int[ie] / 
-                       sqrt( utmp * utmp + utmp1 * utmp1 );
+          photar[ie] = ampl_int[ie] / 
+                       ( sqrt( utmp * utmp + utmp1 * utmp1 ) / 
+                         ( flux_bands_prim[nbands-1] - far_prim[ie] ) );
         }else photar[ie] = ampl_int[ie] / ampl_int_etot;
       }else if(photar_sw == -6){
         if(exclude_energy){
@@ -1144,6 +1541,12 @@ if(abs(photar_sw)<=10){
                   far_prim[ie] * im_part_int[ie];
           photar[ie] = - (phase_int[ie] - atan2(utmp1, utmp)) / PI / freq_wrap;
         }else photar[ie] = - (phase_int[ie] - phase_int_etot) / PI / freq_wrap;
+      }else if(photar_sw == -7){
+        if(exclude_energy) photar[ie] = ampl2_int[ie] / ampl2_int_etot2[ie];
+        else photar[ie] = ampl2_int[ie] / ampl2_int_etot;
+      }else if(photar_sw == -8){
+        if(exclude_energy)photar[ie] = - (delay2_int[ie] - delay2_int_etot2[ie]);
+        else photar[ie] = - (delay2_int[ie] - delay2_int_etot);
       }else if(photar_sw == 1) photar[ie] = r_part_tot_int[ie];
       else if(photar_sw == 2) photar[ie] = im_part_tot_int[ie];
       else if(photar_sw == 3) photar[ie] = ampl_tot_int[ie];
@@ -1160,6 +1563,12 @@ if(abs(photar_sw)<=10){
           utmp1=im_part_tot_int_etot-im_part_tot_int[ie];
           photar[ie] = - (phase_tot_int[ie] - atan2(utmp1, utmp)) / PI / freq_wrap;
         }else photar[ie] = - (phase_tot_int[ie] - phase_tot_int_etot) / PI / freq_wrap;
+      }else if(photar_sw == 7){
+        if(exclude_energy) photar[ie] = ampl2_tot_int[ie] / ampl2_tot_int_etot2[ie];
+        else photar[ie] = ampl2_tot_int[ie] / ampl2_tot_int_etot;
+      }else if(photar_sw == 8){
+        if(exclude_energy) photar[ie] = - (delay2_tot_int[ie] - delay2_tot_int_etot2[ie]);
+        else photar[ie] = - (delay2_tot_int[ie] - delay2_tot_int_etot);
       }
       photar[ie] *= (ear[ie+1] - ear[ie]);
     }
@@ -1182,10 +1591,10 @@ if(abs(photar_sw)<=10){
       }else if(photar_sw == -2){
         y1 = im_part[ie+ne*(ifr0-1)];
         y2 = im_part[ie+ne*ifr0];
-      }else if(photar_sw == -3 || photar_sw == -5){
+      }else if(photar_sw == -3 || photar_sw == -5 || photar_sw == -7){
         y1 = ampl[ie+ne*(ifr0-1)];
         y2 = ampl[ie+ne*ifr0];
-      }else if(photar_sw == -4 || photar_sw == -6){
+      }else if(photar_sw == -4 || photar_sw == -6 || photar_sw == -8){
         y1 = phase[ie+ne*(ifr0-1)];
         y2 = phase[ie+ne*ifr0];
       }else if(photar_sw == 1){
@@ -1194,15 +1603,15 @@ if(abs(photar_sw)<=10){
       }else if(photar_sw == 2){
         y1 = im_part_tot[ie+ne*(ifr0-1)];
         y2 = im_part_tot[ie+ne*ifr0];
-      }else if(photar_sw == 3 || photar_sw == 5){
+      }else if(photar_sw == 3 || photar_sw == 5 || photar_sw == 7){
         y1 = ampl_tot[ie+ne*(ifr0-1)];
         y2 = ampl_tot[ie+ne*ifr0];
-      }else if(photar_sw == 4 || photar_sw == 6){
+      }else if(photar_sw == 4 || photar_sw == 6 || photar_sw == 8){
         y1 = phase_tot[ie+ne*(ifr0-1)];
         y2 = phase_tot[ie+ne*ifr0];
       }
       photar[ie] = (ttmp1 * y1 + ttmp * y2);
-      if( (photar_sw ==-5 || photar_sw ==-6) && nbands > 0){
+      if( (photar_sw ==-5 || photar_sw ==-6 || photar_sw ==-7 || photar_sw ==-8) && nbands > 0){
         y1 = r_part_bands[nbands-1+nbands*(ifr0-1)];
         y2 = r_part_bands[nbands-1+nbands*ifr0];
         if(exclude_energy){
@@ -1225,7 +1634,7 @@ if(abs(photar_sw)<=10){
                            im_part_etot * im_part_etot );
         phase_etot = atan2(im_part_etot, r_part_etot);
       }
-      if( (photar_sw ==5 || photar_sw ==6) && nbands > 0){
+      if( (photar_sw ==5 || photar_sw ==6 || photar_sw ==7 || photar_sw ==8) && nbands > 0){
         y1 = r_part_bands_tot[nbands-1+nbands*(ifr0-1)];
         y2 = r_part_bands_tot[nbands-1+nbands*ifr0];
         if(exclude_energy){
@@ -1244,11 +1653,11 @@ if(abs(photar_sw)<=10){
                                im_part_tot_etot * im_part_tot_etot );
         phase_tot_etot = atan2(im_part_tot_etot, r_part_tot_etot);
       }
-      if( photar_sw == -5 && nbands > 0)photar[ie] /= ampl_etot;
-      if( photar_sw == 5 && nbands > 0)photar[ie] /= ampl_tot_etot;
-      if(photar_sw == -6)
+      if( ( photar_sw == -5 || photar_sw == -7 ) && nbands > 0)photar[ie] /= ampl_etot;
+      if( ( photar_sw == 5 || photar_sw == 7 ) && nbands > 0)photar[ie] /= ampl_tot_etot;
+      if( photar_sw == -6 || photar_sw == -8 )
         photar[ie] = - (photar[ie] - ( nbands > 0 ? phase_etot : 0.) ) / (PI2 * frequency1);
-      if(photar_sw == 6)
+      if( photar_sw == 6 || photar_sw == 8 )
         photar[ie] = - (photar[ie] - ( nbands > 0 ? phase_tot_etot : 0.) ) / (PI2 * frequency1);
       photar[ie] *= (ear[ie+1] - ear[ie]);
     }
@@ -1264,8 +1673,9 @@ if(abs(photar_sw)<=10){
                  far_prim[ie] * r_part_fband[ie];
           utmp1 = flux_bands_prim[nbands-1] * im_part_fband_etot -
                   far_prim[ie] * im_part_fband[ie];
-          photar[ie] = flux_bands_prim[nbands-1] * ampl_fband[ie] / 
-                       sqrt( utmp * utmp + utmp1 * utmp1 );
+          photar[ie] = ampl_fband[ie] / 
+                       ( sqrt( utmp * utmp + utmp1 * utmp1 ) / 
+                         ( flux_bands_prim[nbands-1] - far_prim[ie] ) );
         }else photar[ie] = ampl_fband[ie] / ampl_fband_etot;
 // we will use relative delay with respect to the whole energy band and redefine to be positive
       }else if(photar_sw == -6){
@@ -1277,6 +1687,13 @@ if(abs(photar_sw)<=10){
           photar[ie] =  -(phase_fband[ie]-atan2(utmp1,utmp))/PI/(frequency2+frequency1);
         }else
           photar[ie] = -(phase_fband[ie]-phase_fband_etot)/PI/(frequency2+frequency1);
+      }else if(photar_sw == -7){
+        if(exclude_energy) photar[ie] = ampl2_fband[ie] / ampl2_fband_etot2[ie];
+        else photar[ie] = ampl2_fband[ie] / ampl2_fband_etot;
+// we will use relative delay with respect to the whole energy band and redefine to be positive
+      }else if(photar_sw == -8){
+        if(exclude_energy) photar[ie] = - ( delay2_fband[ie] - delay2_fband_etot2[ie] );
+        else photar[ie] = - ( delay2_fband[ie] - delay2_fband_etot );
       }else if(photar_sw == 1) photar[ie] = r_part_tot_fband[ie];
       else if(photar_sw == 2) photar[ie] = im_part_tot_fband[ie];
       else if(photar_sw == 3) photar[ie] = ampl_tot_fband[ie];
@@ -1296,6 +1713,13 @@ if(abs(photar_sw)<=10){
           photar[ie] =  -(phase_tot_fband[ie]-atan2(utmp1,utmp))/PI/(frequency2+frequency1);
         }else
           photar[ie] = -(phase_tot_fband[ie]-phase_tot_fband_etot)/PI/(frequency2+frequency1);
+      }else if(photar_sw == 7){
+        if(exclude_energy) photar[ie] = ampl2_tot_fband[ie]/ampl2_tot_fband_etot2[ie];
+        else photar[ie] = ampl2_tot_fband[ie]/ampl2_tot_fband_etot;
+// we will use relative delay with respect to the whole energy band and redefine to be positive
+      }else if(photar_sw == 8){
+        if(exclude_energy) photar[ie] =  -(delay2_tot_fband[ie]-delay2_tot_fband_etot2[ie]);
+        else photar[ie] = -(delay2_tot_fband[ie]-delay2_tot_fband_etot);
       }
       photar[ie] *= (ear[ie+1] - ear[ie]);
     }
@@ -1319,6 +1743,12 @@ if(abs(photar_sw)<=10){
         if(photar[ie] >  PI)photar[ie]-=PI2;
       }
       photar[ie] *=  (ear[ie+1] - ear[ie]) / (PI * (ear[ie]+ear[ie+1]));
+    }else if(photar_sw == -17){
+      photar[ie] = ampl2_bands_rebin[2*ie];
+      if(nbands > 1)photar[ie] *= (ear[ie+1] - ear[ie]) / ampl2_bands_rebin[1+2*ie];
+    }else if(photar_sw == -18){
+      photar[ie] = delay2_bands_rebin[2*ie];
+      if(nbands > 1)photar[ie] -= delay2_bands_rebin[1+2*ie];
     }else if(photar_sw == 11) photar[ie] = r_part_bands_tot_rebin[2*ie];
     else if(photar_sw == 12) photar[ie] = im_part_bands_tot_rebin[2*ie];
     else if(photar_sw == 13) photar[ie] = ampl_bands_tot_rebin[2*ie];
@@ -1335,6 +1765,12 @@ if(abs(photar_sw)<=10){
         if(photar[ie] >  PI)photar[ie]-=PI2;
       }
       photar[ie] *= (ear[ie+1] - ear[ie]) / (PI * (ear[ie]+ear[ie+1]));
+    }else if(photar_sw == 17){
+      photar[ie] = ampl2_bands_tot_rebin[2*ie];
+      if(nbands > 1)photar[ie] *= (ear[ie+1] - ear[ie]) / ampl2_bands_tot_rebin[1+2*ie];
+    }else if(photar_sw == 18){
+      photar[ie] = delay2_bands_tot_rebin[2*ie];
+      if(nbands > 1)photar[ie] -= delay2_bands_tot_rebin[1+2*ie];
     }
   }
 }
@@ -1350,12 +1786,16 @@ if (ampl    != NULL){free((void *) ampl);    ampl    = NULL;}
 if (phase   != NULL){free((void *) phase);   phase   = NULL;}
 if (phase_u1!= NULL){free((void *) phase_u1);phase_u1 = NULL;}
 if (phase_u2!= NULL){free((void *) phase_u2);phase_u2 = NULL;}
+if (ampl_etot2  != NULL){free((void *) ampl_etot2);  ampl_etot2  = NULL;}
+if (phase_etot2 != NULL){free((void *) phase_etot2); phase_etot2 = NULL;}
 if (r_part_tot  != NULL){free((void *) r_part_tot);  r_part_tot  = NULL;}
 if (im_part_tot != NULL){free((void *) im_part_tot); im_part_tot = NULL;}
 if (ampl_tot    != NULL){free((void *) ampl_tot);    ampl_tot    = NULL;}
 if (phase_tot   != NULL){free((void *) phase_tot);   phase_tot   = NULL;}
 if (phase_tot_u1!= NULL){free((void *) phase_tot_u1);phase_tot_u1= NULL;}
 if (phase_tot_u2!= NULL){free((void *) phase_tot_u2);phase_tot_u2= NULL;}
+if (ampl_tot_etot2    != NULL){free((void *) ampl_tot_etot2);    ampl_tot_etot2    = NULL;}
+if (phase_tot_etot2   != NULL){free((void *) phase_tot_etot2);   phase_tot_etot2   = NULL;}
 if (r_part_bands  != NULL){free((void *) r_part_bands);  r_part_bands  = NULL;}
 if (im_part_bands != NULL){free((void *) im_part_bands); im_part_bands = NULL;}
 if (ampl_bands    != NULL){free((void *) ampl_bands);    ampl_bands    = NULL;}

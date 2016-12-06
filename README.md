@@ -281,7 +281,12 @@ Definition in XSPEC
      * **par33 ... dt/Af**
        - lag shift for lag-energy dependence in case of par35=+6
        - multiplicative factor in case of adding empirical hard lags 
-         Af&times;f^(qf), used for par35=+16
+         Af&times;f^(qf), used for par35=+16; 
+         if par33=-1 then the following hard lags prescription is used (see 
+         Epitropakis & Papadakis, 2017):
+         100 * log10(Eref/E) * (f/1e-4)^(-1) s
+         with Eref being middle of the reference energy band and E middle of 
+         the energy band of interest
      * **par34 ... Amp/qf**
        - multiplicative factor for the amplitude-energy dependence in case of 
          par35=+5
@@ -297,17 +302,39 @@ Definition in XSPEC
          - -3: amplitude of FT of the relative reflection
          - -4: phase of FT of the relative reflection
          - -5: amplitude for the relative reflection divided by amplitude in the 
-              reference energy band defined by par31 and par32
+               reference energy band defined by par31 and par32  (integration in 
+               frequencies is done in real and imaginary parts first and then 
+               the amplitudes are computed)
          - -6: lag for the relative reflection with respect to reference energy 
-              band defined by par31 and par32
+               band defined by par31 and par32 (integration in frequencies is 
+               done in real and imaginary parts first and then the lags are 
+               computed with frequency at half of the wrapping frequency or 
+               middle of the frequency band)
+         - -7: amplitude  for the relative reflection divided by amplitude in 
+               the reference energy band defined by par31 and par32 (integration 
+               in frequencies here is done in amplitudes directly)
+         - -8: lag for the relative reflection with respect to reference energy 
+               band defined by par31 and par32 (integration in frequencies here 
+               is done in lags directly)
          - 1: real part of FT including primary radiation
          - 2: imaginary part of FT including primary radiation
          - 3: amplitude of FT including primary radiation
          - 4: phase of FT including primary radiation
          - 5: amplitude including the primary radiation divided by amplitude in 
-              the reference energy band defined by par31 and par32
+              the reference energy band defined by par31 and par32 (integration 
+              in frequencies is done in real and imaginary parts first and then 
+              the amplitudes are computed)
          - 6: lag diluted by primary radiation with respect to reference energy 
-              band defined by par31 and par32
+              band defined by par31 and par32 (integration in frequencies is 
+              done in real and imaginary parts first and then the lags are 
+              computed with frequency at half of the wrapping frequency or 
+              middle of the frequency band)
+         - 7: amplitude including the primary radiation divided by amplitude in 
+              the reference energy band defined by par31 and par32 (integration 
+              in frequencies here is done in amplitudes directly)
+         - 8: lag diluted by primary radiation with respect to reference energy 
+              band defined by par31 and par32 (integration in frequencies here 
+              is done in lags directly)
        - _the following values correspond to frequency dependent Fourier 
          transform for the energy band of interest defined by par29 and par30:_
          - -11: real part of FT of the relative reflection
@@ -315,17 +342,35 @@ Definition in XSPEC
          - -13: amplitude of FT of the relative reflection
          - -14: phase of FT of the relative reflection
          - -15: amplitude  for the relative reflection divided by amplitude in 
-              the reference energy band defined by par31 and par32
+                the reference energy band defined by par31 and par32 (rebinning 
+                here is done in real and imaginary parts first and then the 
+                amplitudes are computed)
          - -16: lag for the relative reflection with respect to reference energy 
-              band defined by par31 and par32
+                band defined by par31 and par32 (rebinning here is done in real 
+                and imaginary parts first and then the lags are computed)
+         - -17: amplitude  for the relative reflection divided by amplitude in 
+                the reference energy band defined by par31 and par32 (rebinning 
+                here is done in amplitudes directly)
+         - -18: lag for the relative reflection with respect to reference energy 
+                band defined by par31 and par32 (rebinning here is done in lags 
+                directly)
          - 11: real part of FT including primary radiation
          - 12: imaginary part of FT including primary radiation
          - 13: amplitude of FT including primary radiation
          - 14: phase of FT including primary radiation
          - 15: amplitude including the primary radiation divided by amplitude in 
-              the reference energy band defined by par31 and par32
+               the reference energy band defined by par31 and par32 (rebinning 
+               here is done in real and imaginary parts first and then the 
+               amplitudes are computed)
          - 16: lag diluted by primary radiation with respect to reference energy 
-              band defined by par31 and par32
+               band defined by par31 and par32 (rebinning here is done in real 
+               and imaginary parts first and then the lags are computed)
+         - 17: amplitude including the primary radiation divided by amplitude in 
+               the reference energy band defined by par31 and par32 (rebinning 
+               here is done in amplitudes directly)
+         - 18: lag diluted by primary radiation with respect to reference energy 
+               band defined by par31 and par32 (rebinning here is done in lags 
+               directly)
      * **par36 ... nthreads**
        - how many threads should be used for computations
      * **par37 ... norm**
