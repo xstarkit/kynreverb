@@ -66,55 +66,69 @@
  * par13 ... density  - density profile normalization in 10^15 cm^(-3)
  * par14 ... den_prof - radial power-law density profile
  * par15 ... abun    - Fe abundance (in solar abundance)
- * par16 ... alpha  - position of the cloud centre in GM/c^2 in alpha coordinate
+ * par16 ... therm   - fraction of thermalised flux from the overal incident 
+ *                     flux illuminating the disc
+ *                     = 0 - only the reverberation of reflected radiation is 
+ *                           computed
+ *                     < 0 - only the reverberation of thermal radiation is 
+ *                           computed
+ *                     > 0 - both the thermal and reflection reverberation is
+ *                           included
+ *                     abs(par16) > 1 - the fraction of thermalisation is 
+ *                                      computed from difference between the 
+ *                                      incident and reflected fluxes
+ * par17 ... arate  - accretion rate in units of Ledd if positive or in 
+ *                    Solar mass per Julian year (365.25days) if negative
+ * par18 ... f_col  - spectral hardening factor
+ * par19 ... alpha  - position of the cloud centre in GM/c^2 in alpha coordinate
  *                    (alpha being the impact parameter in phi direction, 
  *                     positive for approaching side of the disc)
- * par17 ... beta   - position of the cloud centre in GM/c^2 in beta coordinate
+ * par20 ... beta   - position of the cloud centre in GM/c^2 in beta coordinate
  *                    (beta being the impact parameter in theta direction, 
  *                     positive in up direction, i.e. away from the disc)
- * par18 ... rcloud - radius of the obscuring cloud
+ * par21 ... rcloud - radius of the obscuring cloud
  *                  - the meaning of cloud is inverted for negative values of 
  *                    rcloud, i.e. only the radiation behind the cloud is 
  *                    computed
- * par19 ... zshift - overall Doppler shift
- * par20 ... limb   - limb darkening/brightening law (emission directionality)
+ * par22 ... zshift - overall Doppler shift
+ * par23 ... limb   - limb darkening/brightening law (emission directionality)
  *                  - if = 0 the local emisivity is not multiplied by anything
  *                  - if = 1 the local emisivity is multiplied by 1+2.06*mu
  *                    (limb darkening)
  *                  - if = 2 the local emisivity is multiplied by ln(1+1/mu)
  *                    (limb brightening)
- * par21 ... tab - which reflion table to use 
+ * par24 ... tab - which reflion table to use 
  *                 1 -> reflion (the old one, lower cut-off energy at 1eV,
  *                      not good for PhoIndex > 2)
  *                 2 -> reflionx (the new one, lower cut-off energy at 100eV)
- * par22 ... sw  - swich for the way how to compute the refl. spectra
+ * par25 ... sw  - swich for the way how to compute the refl. spectra
  *                 1 -> use the computed Xi for the interpolation in reflion,
  *                      i.e. use proper total incident intensity
  *                      with the shifted cut-offs
  *                 2 -> use the Xi correspondent to the computed normalization
  *                      of the incident flux, i.e. do not shift the cut-offs
  *                      when computing the total incident intensity
- * par23 ... ntable - table of relativistic transfer functions used in the model
+ * par26 ... ntable - table of relativistic transfer functions used in the model
  *                    (defines fits file with tables), 0<= ntable <= 99
- * par24 ... nrad   - number of grid points in radius
+ * par27 ... nrad   - number of grid points in radius
  *                  - if negative than the number of radial grid points is 
  *                    dependent on height as -nradius / height^0.66
- * par25 ... division - type of division in radial integration
+ * par28 ... division - type of division in radial integration
  *                      0 -> equidistant radial grid (constant linear step)
  *                      1 -> exponential radial grid (constant logarithmic step)
  *                      >1 -> mixed radial grid with a constant logarithmic step
  *                            in the inner region and with a constant linear 
  *                            step in the outer region; the total nradius 
- *                            (par24) number of points is divided in the 3:2 
- *                            ratio in these regions; the value of par25 gives 
+ *                            (par27) number of points is divided in the 3:2 
+ *                            ratio in these regions; the value of par28 gives 
  *                            the transition radius between these regions 
  *                            (in GM/c^2)
  *                      -1 -> mixed radial grid with the transition radius at 
  *                            2*height
- * par26 ... nphi     - number of grid points in azimuth
- * par27 ... deltaT   - length of the time bin (GM/c^3)
- * par28 ... nt       - number of time subbins per one time bin
- * par29 ... t1/f1/E1 - the time to be used in xspec for the spectrum
+ * par29 ... nphi     - number of grid points in azimuth
+ * par30 ... deltaT   - length of the time bin (GM/c^3)
+ * par31 ... nt       - number of time subbins per one time bin
+ * par32 ... t1/f1/E1 - the time to be used in xspec for the spectrum
  *                      (0 means average spectrum, i.e. divided by the 
  *                       flare duration)
  *                    - the frequency to be used in XSPEC for the energy 
@@ -123,13 +137,13 @@
  *                       wrapping frequency)
  *                    - positive values are in sec or Hz
  *                    - negative values are in GM/c^3 or (GM/c^3)^(-1)
- *                    - if different than par30, the value gives the lower end
+ *                    - if different than par33, the value gives the lower end
  *                      of the time/frequency interval of interest
- *                    - if same as par30, then the functions are computed for 
+ *                    - if same as par33, then the functions are computed for 
  *                      this value of the time/frequency of interest
  *                    - in case of frequency dependent lags it defines the lower
  *                      value of the energy band of interest in keV
- * par30 ... t2/f2/E2 - used only if different than par29 and if par29 is
+ * par33 ... t2/f2/E2 - used only if different than par32 and if par32 is
  *                      nonzero
  *                    - its value gives the upper end of the time/frequency
  *                      interval of interest
@@ -137,7 +151,7 @@
  *                    - negative values are in GM/c^3 or (GM/c^3)^(-1)
  *                    - in case of frequency dependent lags it defines the upper
  *                      value of the energy band of interest in keV
- * par31 ... Eref1   - it defines the lower value of the reference energy band
+ * par34 ... Eref1   - it defines the lower value of the reference energy band
  *                     for lag or amplitude energy dependence as well as in 
  *                     case of frequency dependent lags and amplitudes
  *                   - if zero no reference band is used
@@ -146,49 +160,51 @@
  *                       as a reference band, always excluding the current 
  *                       energy bin
  *                     * for lag-frequency dependence, the energy reference band 
- *                       is abs(par31) to abs(par32) excluding overlaping part 
- *                       with energy band of interest abs(par29) to abs(par30)
- * par32 ... Eref2   - it defines the upper value of the reference energy band
+ *                       is abs(par34) to abs(par35) excluding overlaping part 
+ *                       with energy band of interest abs(par32) to abs(par33)
+ * par35 ... Eref2   - it defines the upper value of the reference energy band
  *                     for lag-energy dependence as well as in case of 
  *                     frequency dependent lags
- * par33 ... dt/Af   - lag shift for lag-energy dependence in case of 
- *                     par35=+6
+ * par36 ... dt/Af   - lag shift for lag-energy dependence in case of 
+ *                     par38=+6
  *                   - multiplicative factor in case of adding empirical hard
- *                     lags Af*f^(qf), used for par35=+16 and par35=+18; 
- *                     if par33=-1 then the following hard lags prescription
+ *                     lags Af*f^(qf), used for par38=+16 and par38=+18; 
+ *                     if par36=-1 then the following hard lags prescription
  *                     is used (see Epitropakis & Papadakis, 2017):
  *                     100 * log10(Eref/E) * (f/1e-4)^(-1) s
  *                     with Eref being middle of the reference energy band
  *                     and E middle of the energy band of interest
- * par34 ... Amp/qf  - multiplicative factor for the amplitude-energy 
- *                     dependence in case of par35=+5
+ * par37 ... Amp/qf  - multiplicative factor for the amplitude-energy 
+ *                     dependence in case of par38=+5
  *                   - powerlaw index in case of adding empirical hard 
- *                     lags Af*f^(qf), used for par35=+16 and par35=+18
- * par35 ... xsw - function to be stored in the XSPEC photar array
- *                  0 -> spectrum at time defined by par29 and par30,
+ *                     lags Af*f^(qf), used for par38=+16 and par38=+18
+ * par38 ... xsw - function to be stored in the XSPEC photar array
+ *                  0 -> spectrum at time defined by par32 and par33,
  *                 the following values correspond to energy
  *                 dependent Fourier transform at the frequency band 
- *                 defined by par29 and par30:
+ *                 defined by par32 and par33:
  *                 -1 -> real part of FT of the relative reflection
  *                 -2 -> imaginary part of FT of the relative reflection
  *                 -3 -> amplitude of FT of the relative reflection
  *                 -4 -> phase of FT of the relative reflection
  *                 -5 -> amplitude  for the relative reflection
  *                       divided by amplitude in the reference energy band
- *                       defined by par31 and par32 (integration in frequencies
+ *                       defined by par34 and par35 (integration in frequencies
  *                       is done in real and imaginary parts first and then 
  *                       the amplitudes are computed)
  *                 -6 -> lag for the relative reflection with respect
- *                       to reference energy band defined by par31 and 
- *                       par32 (integration in frequencies is done in real and
- *                       imaginary parts first and then the lags are computed)
+ *                       to reference energy band defined by par34 and 
+ *                       par35 (integration in frequencies is done in real and
+ *                       imaginary parts first and then the lags are computed
+ *                       with frequency at half of the wrapping frequency or 
+ *                       middle of the frequency band)
  *                 -7 -> amplitude  for the relative reflection
  *                       divided by amplitude in the reference energy band
- *                       defined by par31 and par32 (integration in frequencies
+ *                       defined by par34 and par35 (integration in frequencies
  *                       here is done in amplitudes directly)
  *                 -8 -> lag for the relative reflection with respect
- *                       to reference energy band defined by par31 and 
- *                       par32 (integration in frequencies here is done in 
+ *                       to reference energy band defined by par34 and 
+ *                       par35 (integration in frequencies here is done in 
  *                       lags directly)
  *                  1 -> real part of FT including primary radiation
  *                  2 -> imaginary part of FT including primary radiation
@@ -196,66 +212,68 @@
  *                  4 -> phase of FT including primary radiation
  *                  5 -> amplitude including the primary radiation
  *                       divided by amplitude in the reference energy band
- *                       defined by par31 and par32 (integration in frequencies
+ *                       defined by par34 and par35 (integration in frequencies
  *                       is done in real and imaginary parts first and then 
  *                       the amplitudes are computed)
  *                  6 -> lag diluted by primary radiation with respect
- *                       to reference energy band defined by par31 and 
- *                       par32 (integration in frequencies is done in real and
- *                       imaginary parts first and then the lags are computed)
+ *                       to reference energy band defined by par34 and 
+ *                       par35 (integration in frequencies is done in real and
+ *                       imaginary parts first and then the lags are computed  
+ *                       with frequency at half of the wrapping frequency or 
+ *                       middle of the frequency band)
  *                  7 -> amplitude including the primary radiation
  *                       divided by amplitude in the reference energy band
- *                       defined by par31 and par32 (integration in frequencies
+ *                       defined by par34 and par35 (integration in frequencies
  *                       here is done in amplitudes directly)
  *                  8 -> lag diluted by primary radiation with respect
- *                       to reference energy band defined by par31 and 
- *                       par32 (integration in frequencies here is done in 
+ *                       to reference energy band defined by par34 and 
+ *                       par35 (integration in frequencies here is done in 
  *                       lags directly)
  *                 the following values correspond to frequency dependent
  *                 Fourier transform for the energy band of interest
- *                 defined by par29 and par30:
+ *                 defined by par32 and par33:
  *                 -11 -> real part of FT of the relative reflection
  *                 -12 -> imaginary part of FT of the relative reflection
  *                 -13 -> amplitude of FT of the relative reflection
  *                 -14 -> phase of FT of the relative reflection
  *                 -15 -> amplitude  for the relative reflection
  *                        divided by amplitude in the reference energy
- *                        band defined by par31 and par32
+ *                        band defined by par34 and par35
  *                        (rebinning here is done in real and imaginary parts 
  *                         first and then the amplitudes are computed)
  *                 -16 -> lag for the relative reflection with respect
- *                        to reference energy band defined by par31 and 
- *                        par32 (rebinning here is done in real and imaginary
+ *                        to reference energy band defined by par34 and 
+ *                        par35 (rebinning here is done in real and imaginary
  *                        parts first and then the lags are computed)
  *                 -17 -> amplitude  for the relative reflection
  *                        divided by amplitude in the reference energy
- *                        band defined by par31 and par32
+ *                        band defined by par34 and par35
  *                        (rebinning here is done in amplitudes directly)
  *                 -18 -> lag for the relative reflection with respect
- *                        to reference energy band defined by par31 and 
- *                        par32 (rebinning here is done in lags directly)
+ *                        to reference energy band defined by par34 and 
+ *                        par35 (rebinning here is done in lags directly)
  *                  11 -> real part of FT including primary radiation
  *                  12 -> imaginary part of FT including primary radiation
  *                  13 -> amplitude of FT including primary radiation
  *                  14 -> phase of FT including primary radiation
  *                  15 -> amplitude including the primary radiation
  *                        divided by amplitude in the reference energy
- *                        band defined by par31 and par32
+ *                        band defined by par34 and par35
  *                        (rebinning here is done in real and imaginary parts 
  *                         first and then the amplitudes are computed)
  *                  16 -> lag diluted by primary radiation with respect
- *                        to reference energy band defined by par31 and 
- *                        par32 (rebinning here is done in real and imaginary
+ *                        to reference energy band defined by par34 and 
+ *                        par35 (rebinning here is done in real and imaginary
  *                        parts first and then the lags are computed)
  *                  17 -> amplitude including the primary radiation
  *                        divided by amplitude in the reference energy
- *                        band defined by par31 and par32
+ *                        band defined by par34 and par35
  *                        (rebinning here is done in amplitudes directly)
  *                  18 -> lag diluted by primary radiation with respect
- *                        to reference energy band defined by par31 and 
- *                        par32 (rebinning here is done in lags directly)
+ *                        to reference energy band defined by par34 and 
+ *                        par35 (rebinning here is done in lags directly)
  * 
- * par36 ... nthreads - how many threads should be used for computations
+ * par39 ... nthreads - how many threads should be used for computations
  *
  * NOTES:
  *  -> accuracy vs. speed trade off depends mainly on: nradius, nphi, nt, deltaT
@@ -366,29 +384,29 @@
 #ifdef OUTSIDE_XSPEC
 
 #define IFL    1
-#define NPARAM 37
-
-// for the energy dependence
+#define NPARAM 40
 /*
+// for the energy dependence
 #define NE     15
 #define E_MIN  0.3
 #define E_MAX  10.
 #define NBANDS 5
 */
-
-// for a nice energy dependence
-#define NE     20
-#define E_MIN  0.3
-#define E_MAX  10
-#define NBANDS 2
-
 /*
-// for the frequency dependence
-#define NE     50
-#define E_MIN  1e-4
-#define E_MAX  0.01
-#define NBANDS 2
+// for a nice energy dependence
+#define NE     200
+#define E_MIN  0.1
+#define E_MAX  80.
+#define NBANDS 5
 */
+
+// for the frequency dependence
+#define NE     80
+#define E_MIN  3e-5
+#define E_MAX  0.004
+#define NBANDS 2
+
+
 /* Let's declare variables that are common for the main and KYNrefrev
    subroutines */
 static double ener_low[NBANDS], ener_high[NBANDS];
@@ -406,11 +424,13 @@ int    ie, ia, iinc, ih;
 //one, usually the whole energy range
 ener_low[0] = 0.3;
 ener_high[0] = 1.;
-ener_low[1] = 0.;
-ener_high[1] = 3.;
-/*
-ener_low[1] = 1.5;
+ener_low[1] = 1.2;
 ener_high[1] = 4.;
+/*
+ener_low[0] = 0.3;
+ener_high[0] = 0.9;
+ener_low[1] = 1.;
+ener_high[1] = 3.;
 ener_low[2] = 3.;
 ener_high[2] = 9.;
 ener_low[3] = 12.;
@@ -434,42 +454,44 @@ param[11] = 1.;       // Np:Nr
 param[12] = 1.;       // density
 param[13] = 0.;       // den_prof
 param[14] = 1.;       // abun
-param[15] = -6.;      // alpha
-param[16] = 0.;       // beta
-param[17] = 0.;       // rcloud
-param[18] = 0.;       // zshift
-param[19] = 0.;       // limb
-param[20] = 2.;       // tab
-param[21] = 2.;       // sw
-param[22] = 80.;      // ntable
-param[23] = -4488.;   // nrad
-param[24] = -1.;      // division
-param[25] = 180.;     // nphi
-param[26] = 1.;       // deltaT
-param[27] = 1.;       // nt
-
-param[28] = 0.;       // t1/f1/E1
-param[29] = 0.8;   // t2/f2/E2
-param[30] = 0.;       // Eref1
-param[31] = 3.;       // Eref2
-
+param[15] = 0.;       // thermalisation
+param[16] = 0.1;      // arate
+param[17] = 2.4;      // f_col
+param[18] = -6.;      // alpha
+param[19] = 0.;       // beta
+param[20] = 0.;       // rcloud
+param[21] = 0.;       // zshift
+param[22] = 0.;       // limb
+param[23] = 2.;       // tab
+param[24] = 2.;       // sw
+param[25] = 80.;      // ntable
+param[26] = -4488.;   // nrad
+param[27] = -1.;      // division
+param[28] = 180.;     // nphi
+param[29] = 1.;       // deltaT
+param[30] = 1.;       // nt
+/*
+param[31] = 0.;       // t1/f1/E1
+param[32] = 8.3e-4;   // t2/f2/E2
+param[33] = -1.;      // Eref1
+param[34] = 3.;       // Eref2
+*/
 // the following should be used only for debugging purposes for the case of 
 // abs(photar_sw) > 10
 // the energy bands above should be then re-defined to consist of just 2 bands..
 // for energy band definitions the param[] values are used, while ener_low[]
 // and ener_high[] are ignored later on!
-/*
-param[28] = ener_low[0];       // t1/f1/E1
-param[29] = ener_high[0];      // t2/f2/E2
-param[30] = ener_low[1];       // Eref1
-param[31] = ener_high[1];      // Eref2
-*/
-param[32] = 0.;       // dt/Af
-param[33] = 1.;       // Amp/qf
-param[34] = 8.;       // xsw
-param[35] = 4.;       // nthreads
-param[36] = 1.;       // norm
 
+param[31] = ener_low[0];       // t1/f1/E1
+param[32] = ener_high[0];      // t2/f2/E2
+param[33] = ener_low[1];       // Eref1
+param[34] = ener_high[1];      // Eref2
+
+param[35] = 0.;       // dt/Af
+param[36] = 1.;       // Amp/qf
+param[37] = 16.;      // xsw
+param[38] = 4.;       // nthreads
+param[39] = 1.;       // norm
 
 for (ie = 0; ie <= NE; ie++) {
 //  ear[ie] = E_MIN + ie * (E_MAX-E_MIN) / NE;
@@ -503,7 +525,6 @@ return(0);
 #endif
 /*******************************************************************************
 *******************************************************************************/
-
 //Mpc in cm
 #define MPC      3.0856776e+24
 #define ERG      6.241509e8
@@ -513,6 +534,7 @@ return(0);
 // Ledd is in erg (not W) and multiplied by 10^8 due to (M / (10^8*Msun)) scale
 #define LEDD     1.26e46
 #define HUBBLE   70.
+//speed of light in km/s
 #define CLIGHT   299792.458
 // sec = G*10^8*Msun/c^3
 #define SEC      492.568
@@ -523,6 +545,15 @@ return(0);
 #define LOGXI_NORM0   4.761609554
 #define PI       3.14159265359
 #define PI2      6.2831853071795865
+//kev in SI units (not in ergs!)
+#define KEV      1.6022e-16
+#define H_KEVS   4.13566743e-18
+#define K_KEVK   8.6174e-8
+//speed of light in cm/s
+#define C_CMS    2.99792458e10
+#define MSOLAR   1.989e+30
+#define SIGMA    5.6704e-8
+#define YEAR     31557600.0
 #define LAMP     "KBHlamp_qt.fits"
 #define REFLION1 "reflion.mod"
 #define REFLION2 "reflionx.mod"
@@ -540,8 +571,10 @@ int       exclude_energy=0;
 static float  *xi=NULL, *logxi=NULL;
 static double *gfac=NULL, *transf_d=NULL, *energy1=NULL, *flux1=NULL;
 //static double *cosin=NULL, *phiph=NULL;
-static double h, gamma0, nH0, qn, mass, am2, r_plus, Np, dt, 
+static double *flx=NULL;
+static double h, gamma0, nH0, qn, mass, mass2, am2, r_plus, Np, dt,
               flare_duration_rg, flare_duration_sec;
+static double thermalisation, arate, x0, x1, x2, x3, Tnorm, am, f_col;
 static long   nxi;
 static int    sw, limb, nt_ratio;
 
@@ -619,13 +652,14 @@ double en1=0., en2=0., en3=0., en4=0.;
 double lag_shift=0., ampl_ampl=1.;
 double ttmp, ttmp1, utmp, utmp1, vtmp, vtmp1, y1, y2, y3, y4, y5, y6, y7, y8;
 double pr_final, pom, pom1, pom2, pom3;
-double r, r2, delta, ULt, rms, tmp1, Ut, U_r, UrU_r, Lms, Ems;
+double r, r2, delta, ULt, rms, tmp1, Ut, U_r, UrU_r, Lms, Ems, Ut_rms;
 //double q_final, U_phi, Ur;
-double am, thetaO, rin=0., rout, h_rh, elow, ehigh;
-double mass2, Anorm, Dnorm, g_L, E0, Lx;
+double thetaO, rin=0., rout, h_rh, elow, ehigh;
+double Anorm, Dnorm, g_L, E0, Lx;
 double flux_prim_tot, flux_refl_tot, refl_ratio, NpNr;
 double zzshift;
 double abundance, lensing, gfactor0, ionisation;
+double arcosa3;
 double time1=0., time1_rg=0., time2=0., time2_rg=0., frequency1=0., 
        frequency2=0., tot_time_sec, deltaT, Af=0., qf=0., fmin, fmax, dt0;
 double Tmax, Tmax_final, freq_min, freq_max;
@@ -669,6 +703,7 @@ pom1 = sqrt(3. * am2 + pom * pom);
 if (am >= 0) rms = 3. + pom1 - sqrt((3. - pom) * (3. + pom + 2. * pom1));
 else rms = 3. + pom1 + sqrt((3. - pom) * (3. + pom + 2. * pom1));
 r_plus = 1. + sqrt(1. - am2);
+Ut_rms=(rms*rms-2.*rms+am*sqrt(rms))/rms/sqrt(rms*rms-3.*rms+2.*am*sqrt(rms));
 // thetaO - observer inclination
 ide_param[1] = param[1];
 thetaO = ide_param[1];
@@ -704,13 +739,13 @@ ide_param[5] = param[5];
 // dphi - (phi+dphi) is upper azimuth of non-zero disc emissivity (deg)
 ide_param[6] = param[6];
 // nphi - number of grid points in azimuth
-ide_param[9] = param[25];
+ide_param[9] = param[28];
 // smooth - whether to smooth the resulting spectrum (0-no, 1-yes)
 ide_param[10] = SMOOTH;
 // normal - how to normalize the final spectrum
 ide_param[11] = -1.;
 // ntable - table model (defines fits file with tables)
-ide_param[13] = param[22];
+ide_param[13] = param[25];
 // M/M8 - black hole mass in units of 10^8 solar masses
 mass = param[7];
 mass2 = mass * mass;
@@ -742,12 +777,12 @@ qn = param[13];
 // Fe abundance (in solar abundance)
 abundance = param[14];
 // zshift - overall Doppler shift
-if (param[18] > 0.) {
-  ide_param[12] = param[18];
-  Dnorm = pow( HUBBLE / MPC / CLIGHT / param[18], 2 );
-}else if (param[18] < 0.) {
+if (param[21] > 0.) {
+  ide_param[12] = param[21];
+  Dnorm = pow( HUBBLE / MPC / CLIGHT / param[21], 2 );
+}else if (param[21] < 0.) {
   ide_param[12] = 0.;
-  Dnorm = pow( - HUBBLE / MPC / CLIGHT / param[18], 2 );
+  Dnorm = pow( - HUBBLE / MPC / CLIGHT / param[21], 2 );
 }else {
   ide_param[12] = 0.;
   Dnorm = 1. / ( MPC * MPC );
@@ -755,14 +790,14 @@ if (param[18] > 0.) {
 // zzshift - multiplication factor for gfac from zshift needed for primary
 zzshift=1.0/(1.0+ide_param[12]);
 // limb - table model (defines fits file with tables)
-limb = (int) param[19];
+limb = (int) param[22];
 if ((limb < 0) || (limb > 2)) {
   xs_write("kynrefrev: limb must be >= 0 and <= 2.", 5);
   for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
   goto error;
 }
 // tab - which reflion table to use 
-rix = (int) param[20];
+rix = (int) param[23];
 if (rix == 1) {
   E0 = 0.001;
   sprintf(reflion, REFLION1);
@@ -777,16 +812,16 @@ else{
 }
 ehigh = EC;
 // sw  - swich for the way how to compute the refl. spectra
-sw = (int) param[21];
+sw = (int) param[24];
 // edivision - type of division in local energies (0-equidistant, 1-exponential)
 ide_param[14] = 1.;
 // variability type
 ide_param[15]=1.;
 //photar_sw
-photar_sw = (int) param[34];
+photar_sw = (int) param[37];
 // let's set up the deltaT, ntbin and nn params according to the frequency range 
 // needed
-dt0 = param[26];
+dt0 = param[29];
 //let's keep the T_tail constant, i.e. nt0 * dt0 = TMAX
 nt0 = (int) ceil( TMAX / dt0 );
 if(param[4] != 1000.){
@@ -802,8 +837,8 @@ fmin = 1. / (nn * dt0 * SEC * mass);
 fmax = 1. / (2. * dt0 * SEC * mass);
 if(photar_sw){
   if(abs(photar_sw) <= 10){
-    freq_min = ( param[28] >=0. ? param[28] : param[28] / ( - SEC * mass));
-    freq_max = ( param[29] >=0. ? param[29] : param[29] / ( - SEC * mass));
+    freq_min = ( param[31] >=0. ? param[31] : param[31] / ( - SEC * mass));
+    freq_max = ( param[32] >=0. ? param[32] : param[32] / ( - SEC * mass));
     if(freq_max < freq_min)freq_max=freq_min;
   }else if(abs(photar_sw)>10){
     if( ear_xspec[0] <= 0. ){
@@ -865,7 +900,7 @@ if( DURATION < 0)flare_duration_rg = - DURATION * dt0;
 else flare_duration_rg = DURATION;
 flare_duration_sec = flare_duration_rg * SEC * mass;
 // nt_ratio (nt)
-nt_ratio= (int) param[27];
+nt_ratio= (int) param[30];
 // nt
 nt = ((long) nt_ratio) * ((long) nt0);
 if(nt==1){
@@ -878,7 +913,7 @@ dt=dt0/nt_ratio;
 ide_param[16]=dt;
 // time/frequency
 if (photar_sw == 0){
-  time1 = param[28];
+  time1 = param[31];
   if(time1 >= 0.) time1_rg = time1 / SEC / mass;
   else{
     time1_rg = -time1;
@@ -891,7 +926,7 @@ if (photar_sw == 0){
     for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
     goto error;
   }
-  time2 = param[29];
+  time2 = param[32];
   if(time2 >= 0.) time2_rg = time2 / SEC / mass;
   else{
     time2_rg = -time2;
@@ -907,7 +942,7 @@ if (photar_sw == 0){
 }else if(abs(photar_sw) <= 10){
   fmin = 1. / (nn * dt0 * SEC * mass);
   fmax = 1. / (2. * dt0 * SEC * mass);
-  frequency1 = param[28];
+  frequency1 = param[31];
   if(frequency1 < 0.) frequency1 /= ( - SEC * mass);
   if (frequency1 != 0. && frequency1 < fmin ) {
     sprintf(errortxt,"kynrefrev: frequency has to be larger than %lg Hz or %lg / Rg.",
@@ -923,7 +958,7 @@ if (photar_sw == 0){
     for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
     goto error;
   }
-  frequency2 = param[29];
+  frequency2 = param[32];
   if(frequency2 < 0.) frequency2 /= ( - SEC * mass);
   if (frequency1 != 0. && frequency2 > fmax ) {
     sprintf(errortxt,"kynrefrev: frequency has to be smaller than %lg Hz or %lg / Rg.",
@@ -934,8 +969,8 @@ if (photar_sw == 0){
   }
 }else{
 //definition of the energy band of interest for frequency dependent Fourier transform
-  en1 = param[28];
-  en2 = param[29];
+  en1 = param[31];
+  en2 = param[32];
   if ( en1 < 0. || en1 >= en2 ) {
     sprintf(errortxt,"kynrefrev: wrong definition of energy band of interest (0 <= E1 < E2).");
     xs_write(errortxt, 5);
@@ -954,9 +989,9 @@ if (photar_sw == 0){
 }
 //definition of the reference energy band for both frequency dependent lags and 
 //amplitudes as well as energy dependent lags and amplitudes
-en3 = param[30];
-en4 = param[31];
-if ( ( ( abs(photar_sw) == 5 || abs(photar_sw) == 6 || 
+en3 = param[33];
+en4 = param[34];
+if ( ( ( abs(photar_sw) == 5 || abs(photar_sw) == 6 ||
          abs(photar_sw) == 7 || abs(photar_sw) == 8 ) && 
        ( en3 > 0. && en3 >= en4 ) ) ||
      ( ( abs(photar_sw) == 15 || abs(photar_sw) == 16 || 
@@ -1083,21 +1118,21 @@ if ( (time = (double *) malloc( ntmax * sizeof(double)) )  == NULL ||
 //  for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
 //  goto error;
 //}
-if(photar_sw == 5 || photar_sw == 6 || photar_sw == 7 || photar_sw == 8){
-  lag_shift = param[32];
-  ampl_ampl = param[33];
+if( photar_sw == 5 || photar_sw == 6 || photar_sw == 7 || photar_sw == 8 ){
+  lag_shift = param[35];
+  ampl_ampl = param[36];
 }
 if(photar_sw == 16 || photar_sw == 18){
-  if(param[32]==-1.){
+  if(param[35]==-1.){
     Af = 350.e-4*log10((fabs(en3)+fabs(en4))/(en1+en2));
     qf = 1.;
   }else{
-    Af = param[32];
-    qf = param[33];
+    Af = param[35];
+    qf = param[36];
   }
 }
 // polar - whether we need value of change in polarization angle (0-no,1-yes)
-//stokes = (int) param[31];
+//stokes = (int) param[39];
 stokes = 0;
 if ((stokes < 0) || (stokes > 6)) {
   xs_write("kynrefrev: stokes has to be 0-6.", 5);
@@ -1112,19 +1147,36 @@ ide_param[18]=-1.;
 // delay_phi is defined later on
 //ide_param[19]=del_a
 // number of threads for multithread computations
-ide_param[20] = param[35];
+ide_param[20] = param[38];
+// thermalisation - thermalisation fraction
+thermalisation = param[15];
+// arate - accretion rate (note that LEDD is in erg/s not W and CLIGHT in km/s
+//          not m/s and 1e-13 = erg/s/W / (km/m)^2 = 1e-7 / (1e3)^2)
+if(param[16] < 0.) arate = fabs(param[16]);
+else arate = param[16]*LEDD*1e-13*mass/MSOLAR*YEAR/CLIGHT/CLIGHT/(1-Ut_rms);
+// f_col - colour correction factor
+f_col = param[17];
+if(thermalisation != 0.){
+  Tnorm = f_col * K_KEVK * sqrt( C_CMS ) *
+          pow( 3. * MSOLAR / (8. * PI * RG2 * YEAR * SIGMA), 0.25);
+  x0 = sqrt(rms);
+  arcosa3 = acos(am) / 3.;
+  x1 = 2 * cos(arcosa3 - PI / 3.);
+  x2 = 2 * cos(arcosa3 + PI / 3.);
+  x3 = -2 * cos(arcosa3);
+}
 // alpha - position of the cloud in alpha impact parameter (in GM/c^2)
-ide_param[21] = param[15];
+ide_param[21] = param[18];
 // beta - position of the cloud in beta impact parameter (in GM/c^2)
-ide_param[22] = param[16];
+ide_param[22] = param[19];
 // rcloud - radius of the cloud (in GM/c^2)
-ide_param[23] = param[17];
+ide_param[23] = param[20];
 //whether the flux defined in emissivity subroutine is local one (0) or the 
 //observed one (1)
 ide_param[24] = 0.;
 
 // check if normalization parameter is equal to 1.
-if ((param[18] != 0.) && (param[36] != 1.)) {
+if ((param[21] != 0.) && (param[39] != 1.)) {
   xs_write("kynrefrev: the normalisation parameter par34 should be frozen to unity.", 5);
 }
 // Let's clear the flux array
@@ -1329,11 +1381,11 @@ if (h_rh < height[0]) {
   h = h_rh + r_plus;
 }
 // nrad - number of grid points in radius
-if(param[23] > 0) ide_param[7] = param[23];
-else ide_param[7] = - param[23] * pow(h,-0.66);
+if(param[26] > 0) ide_param[7] = param[26];
+else ide_param[7] = - param[26] * pow(h,-0.66);
 // division - type of division in r integration (0-equidistant, 1-exponential)
-if(param[24]==-1.)ide_param[8]=2.*h;
-else ide_param[8]=param[24];
+if(param[27]==-1.)ide_param[8]=2.*h;
+else ide_param[8]=param[27];
 // Let's interpolate the tables to desired spin and height
 if ((am != am_old) || (h_rh != h_rh_old) || (thetaO != thetaO_old)) {
 // given am->r_plus, find the corresponding index in r_horizon[]:
@@ -1519,6 +1571,7 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
     if(flux1 != NULL); free((void *) flux1); flux1 = NULL;
     if(energy1 != NULL); free((void *) energy1); energy1 = NULL;
     if(energy2 != NULL); free((void *) energy2); energy2 = NULL;
+    if(flx != NULL); free((void *) flx); flx = NULL;
   }
 // Let's read tables (binary tables => hdutype=2)
 // Move to the first extension ('PARAMETERS')
@@ -1633,7 +1686,8 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
   if( (flux0   = (double *) malloc(ne_loc * nxi * sizeof(double))) == NULL ||
       (flux1   = (double *) malloc( nener * nxi * sizeof(double))) == NULL ||
       (energy1 = (double *) malloc( nener * sizeof(double))) == NULL ||
-      (energy2 = (double *) malloc( (nener + 1) * sizeof(double))) == NULL ) {
+      (energy2 = (double *) malloc( (nener + 1) * sizeof(double))) == NULL ||
+      (flx     = (double *) malloc( nener * sizeof(double))) == NULL ) {
     xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
     for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
     goto error;
@@ -1705,6 +1759,13 @@ if ((rix != rix_old) || (strcmp(kydir, FGMSTR(pname)) != 0) || ((abun_old == -1.
     for (ie = 1; ie <= nener; ie++) {
       energy2[ie] = energy2[0] * pow(ehigh / elow, ie / (nener - 1.));
       energy1[ie - 1] = elow * pow(ehigh / elow, (ie - 1.) / (nener - 1.));
+      if(thermalisation != 0.)
+//      the factor rg^2 is due to the fact that we integrate in
+//      dS = r * dr * dphi which we do in radius in geometrical units!!!
+//      the flux (photon number) is per keV, per s and per cm^2
+//      we multiply by Dnorm *  RG2 * mass2 later on, after ide routine is done
+        flx[ie-1] = 2. * pow( energy1[ie - 1] / H_KEVS / C_CMS, 2) / 
+                    H_KEVS / pow(f_col, 4);
     }
   }
   for (ixi = 0; ixi < nxi; ixi++)
@@ -1907,28 +1968,31 @@ fprintf(fw, "Np:Nr       %12.6f\n", param[11]);
 fprintf(fw, "nH0         %12.6f\n", param[12]);
 fprintf(fw, "qn          %12.6f\n", param[13]);
 fprintf(fw, "abun        %12.6f\n", param[14]);
+fprintf(fw, "therm       %12.6f\n", param[15]);
+fprintf(fw, "arate       %12.6f\n", param[16]);
+fprintf(fw, "f_col       %12.6f\n", param[17]);
 fprintf(fw, "alpha       %12.6f\n", ide_param[21]);
 fprintf(fw, "beta        %12.6f\n", ide_param[22]);
 fprintf(fw, "rcloud      %12.6f\n", ide_param[23]);
-fprintf(fw, "zshift      %12.6f\n", param[18]);
-fprintf(fw, "limb        %12d\n", (int) param[19]);
-fprintf(fw, "tab         %12d\n", (int) param[20]);
-fprintf(fw, "sw          %12d\n", (int) param[21]);
+fprintf(fw, "zshift      %12.6f\n", param[21]);
+fprintf(fw, "limb        %12d\n", (int) param[22]);
+fprintf(fw, "tab         %12d\n", (int) param[23]);
+fprintf(fw, "sw          %12d\n", (int) param[24]);
 fprintf(fw, "duration_rg %12.6f\n", DURATION);
 fprintf(fw, "deltaT      %12.6f\n", dt0);
 fprintf(fw, "ntbin       %12d\n", nt0);
-fprintf(fw, "ntable      %12d\n", (int) param[22]);
-fprintf(fw, "nradius     %12d\n", (int) param[23]);
+fprintf(fw, "ntable      %12d\n", (int) param[25]);
+fprintf(fw, "nradius     %12d\n", (int) param[26]);
 fprintf(fw, "division    %12.6f\n", ide_param[8]);
-fprintf(fw, "nphi        %12d\n", (int) param[25]);
+fprintf(fw, "nphi        %12d\n", (int) param[28]);
 fprintf(fw, "nt          %12d\n", nt_ratio);
-fprintf(fw, "t1/f1/E1    %12.4g\n", param[28]);
-fprintf(fw, "t2/f2/E2    %12.4g\n", param[29]);
-fprintf(fw, "E3          %12.4g\n", param[30]);
-fprintf(fw, "E4          %12.4g\n", param[31]);
-fprintf(fw, "Af          %12.4g\n", param[32]);
-fprintf(fw, "qf          %12.4g\n", param[33]);
-fprintf(fw, "photar_sw   %12d\n", (int) param[34]);
+fprintf(fw, "t1/f1/E1    %12.4g\n", param[31]);
+fprintf(fw, "t2/f2/E2    %12.4g\n", param[32]);
+fprintf(fw, "E3          %12.4g\n", param[33]);
+fprintf(fw, "E4          %12.4g\n", param[34]);
+fprintf(fw, "Af          %12.4g\n", param[35]);
+fprintf(fw, "qf          %12.4g\n", param[36]);
+fprintf(fw, "photar_sw   %12d\n", (int) param[37]);
 fprintf(fw, "smooth      %12d\n", SMOOTH);
 fprintf(fw, "Stokes      %12d\n", stokes);
 fprintf(fw, "polar       %12d\n", polar);
@@ -1936,8 +2000,8 @@ fprintf(fw, "r_horizon   %12.6f\n", r_plus);
 fprintf(fw, "r_ms        %12.6f\n", rms);
 fprintf(fw, "edivision   %12d\n", (int) ide_param[14]);
 fprintf(fw, "nener       %12ld\n", nener);
-fprintf(fw, "norm        %12.6f\n", param[36]);
-fprintf(fw, "nthreads    %12d\n", (int) param[35]);
+fprintf(fw, "norm        %12.6f\n", param[39]);
+fprintf(fw, "nthreads    %12d\n", (int) param[38]);
 fprintf(fw, "Xi_in       %s\n", kyxiin);
 fprintf(fw, "Xi_out      %s\n", kyxiout);
 fprintf(fw, "refl_ratio  %12.4g\n", refl_ratio);
@@ -2287,10 +2351,12 @@ void emis_KYNrefrev(double** ear_loc, const int ne_loc, const long nt,
 // cosine of local emission angle --> cosmu
 
 double factor, factor1, gfactor, lensing, ionisation, fluxe[ne_loc];
+double temp, x, Ccal, Lcal, Fbb, Finc, Frefl, Ftherm, temp_new, flux_thermal;
 double time, delay0;
 double ttmp, ttmp1, y1, y2;
 long   ixi0, it;
 int    ie, imin, imax, ir0;
+char   errortext[255];
 
 *ear_loc = energy1;
 // Normalization due to an imposed emissivity law
@@ -2329,19 +2395,10 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
               h * sqrt(1. - 2. * h / (h * h + am2)) / (r * r + h * h) / r;
 // Let's compute the emitted flux at the particular radius
     if (lensing != 0.) {
-      if (qn != 0.) {
-        if (sw == 1) ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
-                                  gfactor * Np / mass / nH0);
-//      sw==2
-        else ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
-                          pow(gfactor, gamma0 - 1.) * Np / mass / nH0);
-      } else {
-        if (sw == 1) ionisation = LOGXI_NORM0 + log10(lensing * gfactor * 
-                                  Np / mass / nH0);
-//      sw==2
-        else ionisation = LOGXI_NORM0 + log10(lensing * 
-                          pow(gfactor, gamma0 - 1.) * Np / mass / nH0);
-      }
+      if(sw == 1) Finc = Np * LEDD / RG2 / mass * lensing * gfactor;
+      else Finc = Np * LEDD / RG2 / mass * lensing * pow(gfactor, gamma0 - 1.);
+      if (qn != 0.) ionisation = log10( Finc / ( nH0 * 1e15 * pow(r, qn) ) );
+      else ionisation = log10( Finc / ( nH0 * 1e15 ) );
 //    given ionisation, find the corresponding index in logXi():
       imin = 0;
       imax = nxi;
@@ -2369,6 +2426,55 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
         fluxe[ie] = (ttmp1 * y1 + ttmp * y2) * factor * factor1;
         if (sw == 1) fluxe[ie] *= pow(gfactor, gamma0 - 2.);
         if (qn != 0.) fluxe[ie] *= pow(r, qn);
+      }
+// add the thermal component
+      if(thermalisation != 0.){
+//      compute thermalised total flux (Ftherm = Finc - Frefl 
+//      or Ftherm = thermalisation * Finc)...
+//      incident flux in SI units ( i.e. J / s / m^2 )
+        Finc *= ( 1e-3 / 4. / PI );
+        if( fabs(thermalisation) <= 1. ) Ftherm = fabs(thermalisation) * Finc;
+        else{
+//        reflected flux in SI units
+          Frefl=0.;
+          ttmp = fluxe[0] * (*(*ear_loc));
+          for (ie = 1; ie < ne_loc; ie++){
+            ttmp1 = fluxe[ie] * (*(*ear_loc+ie));
+            Frefl += (ttmp + ttmp1) / 2. * ((*(*ear_loc+ie))-(*(*ear_loc+ie-1)));
+            ttmp = ttmp1;
+          }
+          Frefl *= KEV * 1e4;
+//        fprintf(stdout,"%lg\n", Frefl / Finc);
+          if(Finc < Frefl){
+            sprintf(errortext, 
+              "kynrefrev: reflection is larger than illumination at radius %lg GM/c^2!",
+              r);
+            xs_write(errortext, 5);
+            Frefl=Finc;
+          }
+          Ftherm = Finc - Frefl;
+        }
+//      compute the temperature of the accretion disc
+        x = sqrt(r);
+        Ccal = 1. - 3. / (x*x) + 2. * am / (x * x * x);
+        if(am < 1.)
+          Lcal = 1. / x * (x - x0 - 1.5 * am * log(x / x0) - 
+                 3. * pow(x1 - am,2.)/x1/(x1 - x2)/(x1 - x3) * log((x - x1)/(x0 - x1))-
+                 3. * pow(x2 - am,2.)/x2/(x2 - x1)/(x2 - x3) * log((x - x2)/(x0 - x2))-
+                 3. * pow(x3 - am,2.)/x3/(x3 - x1)/(x3 - x2) * log((x - x3)/(x0 - x3)));
+        else Lcal = 1. / x * (x - 1 + 1.5 * log((x + 2.) / 3. / x));
+        temp = Tnorm * pow(x, -1.5) * pow( arate / mass2 * Lcal / Ccal, 0.25 );
+//      compute new temperature
+        Fbb = SIGMA * pow( temp / K_KEVK / f_col, 4. );
+        temp_new = K_KEVK * pow( ( Fbb + Ftherm ) / SIGMA, 0.25 ) * f_col;
+//      compute the additional flux due to thermalisation (i.e. "above"
+//      the stationary thermal flux)
+        for(ie = 0; ie < ne_loc; ie++){
+          flux_thermal = flx[ie] * ( 1. / (exp((*(*ear_loc+ie)) / temp_new) - 1.) 
+                                   - 1. / (exp((*(*ear_loc+ie)) / temp) - 1.) );
+          if( thermalisation < 0. ) fluxe[ie] = flux_thermal;
+          else fluxe[ie] += flux_thermal;
+        }
       }
     }else{
       for(it=0;it<nt;it++) far_loc[ne_loc+(ne_loc+1)*it]=0.;
