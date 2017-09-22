@@ -59,12 +59,15 @@
  * par12 ... Np:Nr  - ratio of the primary to the reflected normalization
  *                    1 - self-consistent model for isotropic primary source
  *                    0 - only reflection, primary source is hidden
- *                  - if negative then L/Ledd (par11) means the luminosity 
- *                    towards the disc
  *                  - if positive then L/Ledd (par11) means the luminosity 
  *                    towards the observer
- * par13 ... density  - density profile normalization in 10^15 cm^(-3)
- * par14 ... den_prof - radial power-law density profile
+ *                  - if negative then L/Ledd (par11) means the luminosity 
+ *                    towards the disc
+ * par13 ... density  - density profile normalization in 10^15 cm^(-3) 
+ *                      if positive
+ *                    - ionisation profile normalisation if it is negative
+ * par14 ... den_prof - radial power-law density profile if par13 is positive
+ *                    - radial ionisation profile if par13 is negative
  * par15 ... abun    - Fe abundance (in solar abundance)
  * par16 ... therm   - fraction of thermalised flux from the overal incident 
  *                     flux illuminating the disc
@@ -385,6 +388,7 @@
 
 #define IFL    1
 #define NPARAM 40
+
 /*
 // for the energy dependence
 #define NE     15
@@ -401,9 +405,9 @@
 */
 
 // for the frequency dependence
-#define NE     80
-#define E_MIN  3e-5
-#define E_MAX  0.004
+#define NE     100
+#define E_MIN  1e-4
+#define E_MAX  0.01
 #define NBANDS 2
 
 
@@ -423,9 +427,9 @@ int    ie, ia, iinc, ih;
 //definition of energy band of interest, reference band is defined as the last 
 //one, usually the whole energy range
 ener_low[0] = 0.3;
-ener_high[0] = 1.;
-ener_low[1] = 1.2;
-ener_high[1] = 4.;
+ener_high[0] = 0.8;
+ener_low[1] = 1.;
+ener_high[1] = 3.;
 /*
 ener_low[0] = 0.3;
 ener_high[0] = 0.9;
@@ -463,7 +467,7 @@ param[20] = 0.;       // rcloud
 param[21] = 0.;       // zshift
 param[22] = 0.;       // limb
 param[23] = 2.;       // tab
-param[24] = 2.;       // sw
+param[24] = 1.;       // sw
 param[25] = 80.;      // ntable
 param[26] = -4488.;   // nrad
 param[27] = -1.;      // division
@@ -703,7 +707,8 @@ pom1 = sqrt(3. * am2 + pom * pom);
 if (am >= 0) rms = 3. + pom1 - sqrt((3. - pom) * (3. + pom + 2. * pom1));
 else rms = 3. + pom1 + sqrt((3. - pom) * (3. + pom + 2. * pom1));
 r_plus = 1. + sqrt(1. - am2);
-Ut_rms=(rms*rms-2.*rms+am*sqrt(rms))/rms/sqrt(rms*rms-3.*rms+2.*am*sqrt(rms));
+//Ut_rms=(rms*rms-2.*rms+am*sqrt(rms))/rms/sqrt(rms*rms-3.*rms+2.*am*sqrt(rms));
+Ut_rms = ( 4 * ( sqrt(rms) - am ) + am ) / sqrt(3.) / rms;
 // thetaO - observer inclination
 ide_param[1] = param[1];
 thetaO = ide_param[1];
@@ -770,9 +775,14 @@ Np = param[10];
 // Np:Nr - ratio of the primary to the reflected normalization
 NpNr = param[11];
 if( NpNr > 0. ) Np /= NpNr;
-// nH0 - density profile normalization in 10^15 cm^(-3)
+// nH0 - density/ionisation profile normalization in 10^15 cm^(-3)
 nH0 = param[12];
-// q_n - radial power-law density profile
+if (nH0 == 0.) {
+  xs_write("kynrefrev: density/ionisation must be non-zero!", 5);
+  for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
+  return;
+}
+// q_n - radial power-law density/ionisation profile
 qn = param[13];
 // Fe abundance (in solar abundance)
 abundance = param[14];
@@ -1866,20 +1876,21 @@ for (i = 0; i < 2; i++) {
   lensing = (ttmp * transf_d[ir0] + ttmp1 * transf_d[ir0 - 1]) * 
             h * sqrt(1. - 2. * h / (h * h + am2)) / (r * r + h * h) / r;
   if (lensing != 0.) {
-    if (qn != 0.) {
-      if (sw == 1) ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
-                                gfactor0 * Np / mass / nH0);
-      //sw==2      
-      else ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
-                        pow(gfactor0, gamma0 - 1.) * Np / mass / nH0);
-    }
-    else {
-      if (sw == 1) ionisation = LOGXI_NORM0 + 
-                                log10(lensing * gfactor0 * Np / mass / nH0);
-      //sw==2      
-      else ionisation = LOGXI_NORM0 + 
-                 log10(lensing * pow(gfactor0, gamma0 - 1.) * Np / mass / nH0);
-    }
+    if(nH0 > 0.){
+      if (qn != 0.) {
+        if (sw == 1) ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
+                                  gfactor0 * Np / mass / nH0);
+        //sw==2      
+        else ionisation = LOGXI_NORM0 + log10(pow(r, -qn) * lensing * 
+                          pow(gfactor0, gamma0 - 1.) * Np / mass / nH0);
+      } else {
+        if (sw == 1) ionisation = LOGXI_NORM0 + 
+                                  log10(lensing * gfactor0 * Np / mass / nH0);
+        //sw==2      
+        else ionisation = LOGXI_NORM0 + 
+                   log10(lensing * pow(gfactor0, gamma0 - 1.) * Np / mass / nH0);
+      }
+    } else ionisation = log10(-nH0) + qn * log10(r);
     if (i == 0) {
       sprintf(kyxiin, "%e", pow(10, ionisation));
       FPMSTR(pkyxiin, kyxiin);
@@ -2350,7 +2361,7 @@ void emis_KYNrefrev(double** ear_loc, const int ne_loc, const long nt,
 // disc surface in polar coords r, phi;
 // cosine of local emission angle --> cosmu
 
-double factor, factor1, gfactor, lensing, ionisation, fluxe[ne_loc];
+double factor, factor1, factor2, gfactor, lensing, ionisation, fluxe[ne_loc];
 double temp, x, Ccal, Lcal, Fbb, Finc, Frefl, Ftherm, temp_new, flux_thermal;
 double time, delay0;
 double ttmp, ttmp1, y1, y2;
@@ -2363,7 +2374,8 @@ char   errortext[255];
 if (limb == 0) factor = 1. / PI;
 if (limb == 1) factor = 1. / PI / (1. + 2.06 * 2. / 3.) * (1. + 2.06 * cosmu);
 if (limb == 2) factor = 1. / PI * log(1. + 1. / cosmu);
-factor *= nH0 * REFLIONX_NORM;
+factor *= REFLIONX_NORM;
+if(nH0 > 0.) factor *= nH0;
 // given r, find corresponding indices in radius:
 imin = 0;
 imax = nradius;
@@ -2397,8 +2409,14 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
     if (lensing != 0.) {
       if(sw == 1) Finc = Np * LEDD / RG2 / mass * lensing * gfactor;
       else Finc = Np * LEDD / RG2 / mass * lensing * pow(gfactor, gamma0 - 1.);
-      if (qn != 0.) ionisation = log10( Finc / ( nH0 * 1e15 * pow(r, qn) ) );
-      else ionisation = log10( Finc / ( nH0 * 1e15 ) );
+      if(nH0 > 0.){
+        if (qn != 0.) ionisation = log10( Finc / ( nH0 * 1e15 * pow(r, qn) ) );
+        else ionisation = log10( Finc / ( nH0 * 1e15 ) );
+        factor1 = 1.;
+      } else{
+        ionisation = log10(-nH0) + qn * log10(r);
+        factor1 = Finc / 1e15 / (-nH0) / pow(r,qn);
+      }
 //    given ionisation, find the corresponding index in logXi():
       imin = 0;
       imax = nxi;
@@ -2410,22 +2428,22 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
       }
       if (ixi0 == 0) ixi0 = 1;
       ttmp = (ionisation - logxi[ixi0 - 1]) / (logxi[ixi0] - logxi[ixi0 - 1]);
-      factor1 = 1.;
       if (ttmp < 0.) {
         ttmp = 0.;
-        factor1 = pow(10, ionisation - logxi[0]);
+        factor1 *= pow(10, ionisation - logxi[0]);
       }
       if (ttmp > 1.) {
         ttmp = 1.;
-        factor1 = pow(10, ionisation - logxi[nxi - 1]);
+        factor1 *= pow(10, ionisation - logxi[nxi - 1]);
       }
       ttmp1 = 1. - ttmp;
       for (ie = 0; ie < ne_loc; ie++) {
         y1 = flux1[ie + ne_loc * (ixi0 - 1)];
         y2 = flux1[ie + ne_loc * ixi0];
-        fluxe[ie] = (ttmp1 * y1 + ttmp * y2) * factor * factor1;
+        factor2 = exp( energy1[ie] / EC * (1.-1./gfactor) );
+        fluxe[ie] = (ttmp1 * y1 + ttmp * y2) * factor * factor1 * factor2;
         if (sw == 1) fluxe[ie] *= pow(gfactor, gamma0 - 2.);
-        if (qn != 0.) fluxe[ie] *= pow(r, qn);
+        if (nH0 > 0. && qn != 0.) fluxe[ie] *= pow(r, qn);
       }
 // add the thermal component
       if(thermalisation != 0.){

@@ -175,7 +175,7 @@ Definition in XSPEC
      * **par10 ... PhoIndex**
        - power-law energy index of the primary flux
      * **par11 ... L/L~Edd~**
-       - dE/dt;, the intrinsic local (if negative) or the observed 
+       - dE/dt, the intrinsic local (if negative) or the observed 
          (if positive) primary isotropic flux in the X-ray energy range 2-10keV 
          in units of L~Edd~
      * **par12 ... Np:Nr**
@@ -185,10 +185,14 @@ Definition in XSPEC
        - if positive then L/L~Edd~ (par11) means the luminosity towards the 
          observer
        - if negative then L/L~Edd~ (par11) means the luminosity towards the disc
-     * **par13 ... density**
-       - density profile normalization in 10^15 cm^(-3)
-     * **par14 ... den_prof**
-       - radial power-law density profile
+     * **par13 ... density/ionisation**
+       - density profile normalization in 10^15 cm^(-3) if positive
+       - ionisation profile normalisation if it is negative
+       - this parameter cannot be zero
+     * **par14 ... den_prof/ion_prof**
+       - radial power-law density profile if par13 is positive
+       - radial ionisation profile if par13 is negative
+       - the radial profiles in both cases are given by abs(par13)*r^(par14)
      * **par15 ... abun**
        - Fe abundance (in solar abundance)
      * **par16 ... therm**
