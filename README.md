@@ -192,7 +192,7 @@ Definition in XSPEC
      * **par14 ... den_prof/ion_prof**
        - radial power-law density profile if par13 is positive
        - radial ionisation profile if par13 is negative
-       - the radial profiles in both cases are given by abs(par13)*r^(par14)
+       - the radial profiles in both cases are given by abs(par13) &times; r^(par14)
      * **par15 ... abun**
        - Fe abundance (in solar abundance)
      * **par16 ... therm**
