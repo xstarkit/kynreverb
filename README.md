@@ -76,8 +76,8 @@ Required files
    - [reflion.mod](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflion.mod.gz) (old),
    - [reflionx.mod](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflionx.mod.gz),
 
-   or in case the links are not available or if the tables there are updated and 
-   their format/structure has changed:
+       or in case the links are not available or if the tables there are updated and 
+       their format/structure has changed:
 
    - [reflion.mod](https://owncloud.asu.cas.cz/index.php/s/6CWcb0o5Ssjehju) 
      (or [here](http://www.astro.cas.cz/dovciak/pub/KY-external/reflion.mod))
