@@ -65,8 +65,8 @@ Required files
 
 * Source files in the main repository directory.
 
-* KY tables: [KBHlamp_qt.fits](https://owncloud.asu.cas.cz/index.php/s/xg64GRMSRGiWOPR) 
-  (also [here](http://www.astro.cas.cz/dovciak/pub/KY/KBHlamp_qt.fits)) 
+* KY tables: [KBHlamp80.fits](https://owncloud.asu.cas.cz/index.php/s/abuFcygHKEKFiSa) 
+  (also [here](http://www.astro.cas.cz/dovciak/pub/KY/KBHlamp80.fits)) 
   and [KBHtables80.fits](https://owncloud.asu.cas.cz/index.php/s/WP8aLN168MJgcB9) 
   (also [here](http://www.astro.cas.cz/dovciak/pub/KY/KBHtables80.fits)).
 

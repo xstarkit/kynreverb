@@ -29,7 +29,7 @@
  * subroutine ide() for integrating local emission over the disc and uses the 
  * fits file 'KBHtables80.fits' defining the transfer functions needed for the 
  * integration. For details on ide() and the fits file see the subroutine ide(). 
- * This model also uses KBHlamp_qt.fits file with transfer functions for the 
+ * This model also uses KBHlamp80.fits file with transfer functions for the 
  * light coming from primary source and hitting the accretion disc (see the 
  * description of this file below). The reflection is taken from Ross & Fabian 
  * tables reflionx.mod.
@@ -283,7 +283,7 @@
  *  -> the normalization of this model has to be unity!
  *
  * -------------------------------------------
- * KBHlamp_qt.fits
+ * KBHlamp80.fits
  *
  * This file contains pre-calculated values of the functions needed for the
  * lamp-post models. It is supposed that a primary source of emission is placed
@@ -295,7 +295,7 @@
  * between the source and the disc is optically thin, therefore ray-tracing
  * in the vacuum Kerr space-time could be used for computing the functions.
  *
- * There are six functions stored in the KBHlamp_qt.fits file as columns. 
+ * There are seven functions stored in the KBHlamp80.fits file as columns. 
  * They are parametrized by the value of the horizon of the black hole (FITS 
  * table extensions), height of the primary source (rows) and either the
  * inclination angles of the observer (elements) or the radius in GM/c^2
@@ -307,6 +307,8 @@
  * r-r_horizon = 0.01 - 1000 (100 values with exponentially growing step).
  *
  * The functions included are:
+ * q2_a   - constant of motion, q^2, defining the photon angular momentum 
+ *          between the axis and the observer
  * dWadWo - amplification of the primary source flux:
  *        = sin(theta_axis_local) / sin(theta_observer) *
  *          dtheta_axis_local/dtheta_observer
@@ -331,7 +333,7 @@
  *                            disc (in the local rest frame co-moving with the
  *                            disc) and the radial tetrad vector.
  *
- * The definition of the file KBHlamp_qt.fits:
+ * The definition of the file KBHlamp80.fits:
  * 0. All of the extensions defined below are binary.
  * 1. The first extension contains a vector of the horizon values in GM/c^2
  *    (1.00 <= r_horizon <= 2.00).
@@ -344,9 +346,9 @@
  * 5. In the following extensions the functions are defined, each extension is
  *    for a particular value of r_horizon, each row is for a particular value of
  *    height and each element is either for a particular value of inclination
- *    (dWadWo, delay_a) or incident radius (the rest of the functions).
- * 6. Each of these extensions has six columns. In each column, a particular
- *    function is stored - dWadWo, delay_a, q, pr, dWadSd and delay, 
+ *    (q2_a, dWadWo, delay_a) or incident radius (the rest of the functions).
+ * 6. Each of these extensions has seven columns. In each column, a particular
+ *    function is stored - q2_a, dWadWo, delay_a, q, pr, dWadSd and delay, 
  *    respectively.
  * 
  *==============================================================================
@@ -558,7 +560,7 @@ return(0);
 #define MSOLAR   1.989e+30
 #define SIGMA    5.6704e-8
 #define YEAR     31557600.0
-#define LAMP     "KBHlamp_qt.fits"
+#define LAMP     "KBHlamp80.fits"
 #define REFLION1 "reflion.mod"
 #define REFLION2 "reflionx.mod"
 #define REFLIONX_NORM 1.e20
@@ -670,7 +672,7 @@ double Tmax, Tmax_final, freq_min, freq_max;
 double sumt, sumf, sumt2, sumtf, qtime, Atime;
 long   nt, iabun, igam, ixi, it;
 int    imin, imax, irh0, ih0, ith0, ir0, iabun0, igam0;
-int    nt0, ms, nspec, polar, stokes, rix, photar_sw, npoints;
+int    nt0, nspec, polar, stokes, rix, photar_sw, npoints;
 int    i, ie, je, quit, it0, itn, iband;
 //int  itmin;
 //double photar1_xspec[ne_xspec]; photar1_short[3], *photar1=NULL;
@@ -718,27 +720,21 @@ ide_param[2] = param[2];
 ide_param[3] = param[3];
 // rout - outer edge of non-zero disc emissivity
 ide_param[4] = param[4];
-rout = param[4];
-//set up inner and outer radii:
-ms = (int) ide_param[3];
-if(ms!=0 && ms!=1 && ms!=2){
-  xs_write("kynrefrev: ms must be 0, 1 or 2",5);
-  for (ie = 0; ie < ne_xspec; ie++) photar[ie] = 0.;
-  goto error;
+// rin, rout - inner, outer edge of non-zero disc emissivity
+if( param[3] == 1. ){
+  if( param[2] < rms ) rin = rms;
+  else rin = param[2];
+  rout = param[4];
+}else if( param[3] == 2. ){
+  rin  = param[2] * rms;
+  rout = param[4] * rms;
+}else if( param[3] == 0. ){
+  rin  = param[2];
+  rout = param[4];
 }
-if(ms==1){
- if(ide_param[2]<rms)rin=rms-r_plus;
- else rin=ide_param[2]-r_plus;
- rout=ide_param[4]-r_plus;
-}else if(ms==2){
- rin=ide_param[2]*rms-r_plus;
- rout=ide_param[4]*rms-r_plus;
-}else if(ms==0){
- rin=ide_param[2]-r_plus;
- rout=ide_param[4]-r_plus;
-}
-if(rin<0.)rin=0.;
-if(rout<0.)rout=0.;
+if(rin  < r_plus)rin  = r_plus;
+if(rout < r_plus)rout = r_plus;
+
 // phi  - lower azimuth of non-zero disc emissivity (deg)
 ide_param[5] = param[5];
 // dphi - (phi+dphi) is upper azimuth of non-zero disc emissivity (deg)
@@ -1207,7 +1203,7 @@ if(first_h) {
   else if (kydir[strlen(kydir) - 1] == '/') sprintf(tables_file, "%s%s",
                                                     kydir, LAMP);
   else sprintf(tables_file, "%s/%s", kydir, LAMP);
-// Let's read the 'KBHlamp_q' fits file
+// Let's read the 'KBHlamp80' fits file
 // The status parameter must always be initialized.
   status = 0;
   ffopen(&fptr, tables_file, READONLY, &status);
@@ -1327,26 +1323,26 @@ if(first_h) {
     nelements2 = nrow * nradius;
     for (irow = 0; irow < nh; irow += nrow) {
 //    the last block to read may be smaller:
-      if ((nradius - irow) < nrow) {
-        nelements1 = (nradius - irow) * nincl;
-        nelements2 = (nradius - irow) * nradius;
+      if ((nh - irow) < nrow) {
+        nelements1 = (nh - irow) * nincl;
+        nelements2 = (nh - irow) * nradius;
       }
-      ffgcv(fptr, TFLOAT, 1, irow + 1, 1, nelements1, &float_nulval, 
+      ffgcv(fptr, TFLOAT, 2, irow + 1, 1, nelements1, &float_nulval, 
             &dWadWo[irow * nincl + nh * nincl * ihorizon],
             &anynul, &status);
-      ffgcv(fptr, TFLOAT, 2, irow + 1, 1, nelements1, &float_nulval, 
+      ffgcv(fptr, TFLOAT, 3, irow + 1, 1, nelements1, &float_nulval, 
             &delay_a[irow * nincl + nh * nincl * ihorizon],
             &anynul, &status);
-      ffgcv(fptr, TFLOAT, 3, irow + 1, 1, nelements2, &float_nulval, 
+      ffgcv(fptr, TFLOAT, 4, irow + 1, 1, nelements2, &float_nulval, 
             &q[irow * nradius + nh * nradius * ihorizon],
             &anynul, &status);
-      ffgcv(fptr, TFLOAT, 4, irow + 1, 1, nelements2, &float_nulval, 
+      ffgcv(fptr, TFLOAT, 5, irow + 1, 1, nelements2, &float_nulval, 
             &pr[irow * nradius + nh * nradius * ihorizon],
             &anynul, &status);
-      ffgcv(fptr, TFLOAT, 5, irow + 1, 1, nelements2, &float_nulval, 
+      ffgcv(fptr, TFLOAT, 6, irow + 1, 1, nelements2, &float_nulval, 
             &dWadSd[irow * nradius + nh * nradius * ihorizon],
             &anynul, &status);
-      ffgcv(fptr, TFLOAT, 6, irow + 1, 1, nelements2, &float_nulval, 
+      ffgcv(fptr, TFLOAT, 7, irow + 1, 1, nelements2, &float_nulval, 
             &delay[irow * nradius + nh * nradius * ihorizon],
             &anynul, &status);
     }
