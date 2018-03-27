@@ -6,9 +6,16 @@
 #define PI   3.14159265358979
 #define PI2  6.28318530717959
 
-extern int    xs_write(char* wrtstr, int idest);
-extern double t0, fwrap;
-extern int    exclude_energy;
+//extern int    xs_write(char* wrtstr, int idest);
+//extern double t0, fwrap;
+//extern int    exclude_energy;
+
+// Let's declare variables that can be seen from ide and FFT routine
+double    *del=NULL, t0, fwrap=0.;
+float     *radius=NULL;
+long int  nradius;
+int       exclude_energy=0;
+
 
 void fft_reverberation(const double *ear, int ne, double *photar, 
                        double frequency1, double frequency2, int photar_sw, 
@@ -16,7 +23,7 @@ void fft_reverberation(const double *ear, int ne, double *photar,
                        double *far, double *far_prim,
                        double *flux_bands, double *flux_bands_prim,
                        int nbands, double tot_time_sec, 
-                       double flare_duration_sec, char *cparam){
+                       double flare_duration_sec, char *cparam, char *cname){
 
 void four(double *data_r, double *data_im, long n1, int isign);
 
@@ -70,12 +77,12 @@ FILE   *fw1, *fw2, *fw3, *fw4, *fw5, *fw6;
 //heap instead of on an available size-limited stack!
 if ( ( data_r  = (double *) malloc( nn * sizeof(double) ) ) == NULL ||
      ( data_im = (double *) malloc( nn * sizeof(double) ) ) == NULL ) {
-  xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
+  xs_write("fft_reverberation: Failed to allocate memory for tmp arrays.", 5);
   for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
   goto error;
 }
 if ( ( freq  = (double *) malloc( (nn/2+1) * sizeof(double) ) ) == NULL ) {
-  xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
+  xs_write("fft_reverberation: Failed to allocate memory for tmp arrays.", 5);
   for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
   goto error;
 }
@@ -96,7 +103,7 @@ if( ( r_part   = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL |
     ( phase_tot_u2 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( ampl_tot_etot2  = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_tot_etot2 = (double *) malloc( ne * (nn/2+1) * sizeof(double) ) ) == NULL ) {
-  xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
+  xs_write("fft_reverberation: Failed to allocate memory for tmp arrays.", 5);
   for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
   goto error;
 }
@@ -112,7 +119,7 @@ if( nbands > 0 && (
     ( ampl_bands_tot     = (double *) malloc( nbands * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_bands_tot    = (double *) malloc( nbands * (nn/2+1) * sizeof(double) ) ) == NULL ||
     ( phase_bands_tot_u1 = (double *) malloc( nbands * (nn/2+1) * sizeof(double) ) ) == NULL ) ){
-  xs_write("kynrefrev: Failed to allocate memory for tmp arrays.", 5);
+  xs_write("fft_reverberation: Failed to allocate memory for tmp arrays.", 5);
   for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
   goto error;
 }
@@ -1319,17 +1326,17 @@ if( abs(photar_sw) > 10 && nbands > 0){
 // Write the tables
 // energy dependent Fourier transform
 if(abs(photar_sw)<=10){
-  sprintf(filename, "kynrefrev_%s_real.dat",cparam);
+  sprintf(filename, "%s_%s_real.dat",cname,cparam);
   fw1 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_imag.dat",cparam);
+  sprintf(filename, "%s_%s_imag.dat",cname,cparam);
   fw2 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_ampl.dat",cparam);
+  sprintf(filename, "%s_%s_ampl.dat",cname,cparam);
   fw3 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_phase.dat",cparam);
+  sprintf(filename, "%s_%s_phase.dat",cname,cparam);
   fw4 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_phase_u1.dat",cparam);
+  sprintf(filename, "%s_%s_phase_u1.dat",cname,cparam);
   fw5 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_phase_u2.dat",cparam);
+  sprintf(filename, "%s_%s_phase_u2.dat",cname,cparam);
   fw6 = fopen(filename, "w");
   for(ifr=0;ifr<=nn/2;ifr++){
     for(ie=0;ie<ne;ie++){
@@ -1355,15 +1362,15 @@ if(abs(photar_sw)<=10){
   fclose(fw6);
 }
 // Fourier transform for chosen energy bands
-sprintf(filename, "kynrefrev_%s_bands_real.dat",cparam);
+sprintf(filename, "%s_%s_bands_real.dat",cname,cparam);
 fw1 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_imag.dat",cparam);
+sprintf(filename, "%s_%s_bands_imag.dat",cname,cparam);
 fw2 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_ampl.dat",cparam);
+sprintf(filename, "%s_%s_bands_ampl.dat",cname,cparam);
 fw3 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_phase.dat",cparam);
+sprintf(filename, "%s_%s_bands_phase.dat",cname,cparam);
 fw4 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_phase_u1.dat",cparam);
+sprintf(filename, "%s_%s_bands_phase_u1.dat",cname,cparam);
 fw5 = fopen(filename, "w");
 //sprintf(filename, "kynrefrev_%s_bands_phase_u2.dat",cparam);
 //fw4 = fopen(filename, "w");
@@ -1393,17 +1400,17 @@ fclose(fw4);
 fclose(fw5);
 // energy dependent Fourier transform when primary is included
 if(abs(photar_sw)<=10){
-  sprintf(filename, "kynrefrev_%s_real_tot.dat",cparam);
+  sprintf(filename, "%s_%s_real_tot.dat",cname,cparam);
   fw1 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_imag_tot.dat",cparam);
+  sprintf(filename, "%s_%s_imag_tot.dat",cname,cparam);
   fw2 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_ampl_tot.dat",cparam);
+  sprintf(filename, "%s_%s_ampl_tot.dat",cname,cparam);
   fw3 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_phase_tot.dat",cparam);
+  sprintf(filename, "%s_%s_phase_tot.dat",cname,cparam);
   fw4 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_phase_tot_u1.dat",cparam);
+  sprintf(filename, "%s_%s_phase_tot_u1.dat",cname,cparam);
   fw5 = fopen(filename, "w");
-  sprintf(filename, "kynrefrev_%s_phase_tot_u2.dat",cparam);
+  sprintf(filename, "%s_%s_phase_tot_u2.dat",cname,cparam);
   fw6 = fopen(filename, "w");
   for(ifr=0;ifr<=nn/2;ifr++){
     for(ie=0;ie<ne;ie++){
@@ -1429,15 +1436,15 @@ if(abs(photar_sw)<=10){
   fclose(fw6);
 }
 // Fourier transform for chosen energy bands when primary is included
-sprintf(filename, "kynrefrev_%s_bands_real_tot.dat",cparam);
+sprintf(filename, "%s_%s_bands_real_tot.dat",cname,cparam);
 fw1 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_imag_tot.dat",cparam);
+sprintf(filename, "%s_%s_bands_imag_tot.dat",cname,cparam);
 fw2 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_ampl_tot.dat",cparam);
+sprintf(filename, "%s_%s_bands_ampl_tot.dat",cname,cparam);
 fw3 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_phase_tot.dat",cparam);
+sprintf(filename, "%s_%s_bands_phase_tot.dat",cname,cparam);
 fw4 = fopen(filename, "w");
-sprintf(filename, "kynrefrev_%s_bands_phase_tot_u1.dat",cparam);
+sprintf(filename, "%s_%s_bands_phase_tot_u1.dat",cname,cparam);
 fw5 = fopen(filename, "w");
 for(ifr=0;ifr<=nn/2;ifr++){
   fprintf(fw1, "%E\t", freq[ifr]);
@@ -1465,7 +1472,7 @@ fclose(fw4);
 fclose(fw5);
 // frequency integrated energy dependent functions
 if(abs(photar_sw)<=10){
-  sprintf(filename, "kynrefrev_%s_fft_tot_int.dat",cparam);
+  sprintf(filename, "%s_%s_fft_tot_int.dat",cname,cparam);
   fw1 = fopen(filename, "w");
   for(ie=0;ie<ne;ie++)
     fprintf(fw1, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", 
@@ -1485,13 +1492,13 @@ if(abs(photar_sw)<=10){
                im_part_tot_int_etot-im_part_tot_int[ie],
                 r_part_tot_int_etot- r_part_tot_int[ie]))/PI/freq_wrap0);
   fclose(fw1);
-  sprintf(filename, "kynrefrev_%s_freq_wrap.dat",cparam);
+  sprintf(filename, "%s_%s_freq_wrap.dat",cname,cparam);
   fw1 = fopen(filename, "w");
   fprintf(fw1, "%E", freq_wrap0);
   fclose(fw1);
 // frequency band integrated Fourier transform
   if( frequency1 > 0. && frequency1 < frequency2){
-  sprintf(filename, "kynrefrev_%s_fft_tot_fband.dat",cparam);
+  sprintf(filename, "%s_%s_fft_tot_fband.dat",cname,cparam);
   fw1 = fopen(filename, "w");
   for(ie=0;ie<ne;ie++)
     fprintf(fw1, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", 
@@ -1871,3 +1878,17 @@ for (i=0;i<n1;i++) {
 free((char*) (data)); 
 }
 #undef SWAP
+/*******************************************************************************
+*******************************************************************************/
+double incgamma(double a, double x){
+
+double gfunc;
+long   i;
+
+gfunc=0.;
+for(i=100000;i>=1;i--) gfunc=(a-i)*i/(2.*i+1.+x-a+gfunc);
+gfunc = pow(x,a) * exp(-x) / (1.+x-a+gfunc);
+return(gfunc);
+}
+/*******************************************************************************
+*******************************************************************************/

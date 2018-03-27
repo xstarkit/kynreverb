@@ -2069,13 +2069,12 @@ while(iiloop<(iloop+nloops) && iiloop<=(nrad*nphi)){
 }//next iiloop
 
 error:
-if(far_loc != NULL); free((void *) far_loc); far_loc = NULL;
+if(far_loc != NULL){free((void *) far_loc); far_loc = NULL;}
 if(polar){
-  if(qar_loc != NULL); free((void *) qar_loc); qar_loc = NULL;
-  if(uar_loc != NULL); free((void *) uar_loc); uar_loc = NULL;
-  if(var_loc != NULL); free((void *) var_loc); var_loc = NULL;
+  if(qar_loc != NULL){free((void *) qar_loc); qar_loc = NULL;}
+  if(uar_loc != NULL){free((void *) uar_loc); uar_loc = NULL;}
+  if(var_loc != NULL){free((void *) var_loc); var_loc = NULL;}
 }
-
 return;
 }
 /*******************************************************************************
