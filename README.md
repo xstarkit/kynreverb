@@ -78,25 +78,25 @@ Required files
 * [REFLION(X)](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflion.html) 
   tables for KYNrefrev (Ross & Fabian 2005, MNRAS, 358, 211) - unpack gzipped files:
 
-   - [reflion.mod](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflion.mod.gz) (old),
-   - [reflionx.mod](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflionx.mod.gz),
+    - [reflion.mod](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflion.mod.gz) (old),
+    - [reflionx.mod](https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/reflionx.mod.gz),
+ 
+        or in case the links are not available or if the tables there are updated and 
+        their format/structure has changed:
+ 
+    - [reflion.mod](https://owncloud.asu.cas.cz/index.php/s/6CWcb0o5Ssjehju) 
+      (or [here](http://www.astro.cas.cz/dovciak/pub/KY-external/reflion.mod))
+      (old),
+    - [reflionx.mod](https://owncloud.asu.cas.cz/index.php/s/Q6biiTPM1QBMtiT)
+      (or [here](http://www.astro.cas.cz/dovciak/pub/KY-external/reflionx.mod)).
+ 
+* [XILLVER](https://hea-www.cfa.harvard.edu/%7Ejavier/xillver/)
+  tables for KYNxilrev (Garcia & Kallman 2010, ApJ, 718, 695, 
+  Garcia et al. 2013, ApJ, 768, 2 and Garcia et al. 2016, MNRAS, 462, 751) - 
+  unpack gzipped files:
 
-       or in case the links are not available or if the tables there are updated and 
-       their format/structure has changed:
-
-   - [reflion.mod](https://owncloud.asu.cas.cz/index.php/s/6CWcb0o5Ssjehju) 
-     (or [here](http://www.astro.cas.cz/dovciak/pub/KY-external/reflion.mod))
-     (old),
-   - [reflionx.mod](https://owncloud.asu.cas.cz/index.php/s/Q6biiTPM1QBMtiT)
-     (or [here](http://www.astro.cas.cz/dovciak/pub/KY-external/reflionx.mod)).
-
-  * [XILLVER](https://hea-www.cfa.harvard.edu/%7Ejavier/xillver/)
-    tables for KYNxilrev (Garcia & Kallman 2010, ApJ, 718, 695, 
-    Garcia et al. 2013, ApJ, 768, 2 and Garcia et al. 2016, MNRAS, 462, 751) - 
-    unpack gzipped files:
-
-   - [xillver-a-Ec5.fits](https://hea-www.cfa.harvard.edu/%7Ejavier/xillver/tables/xillver-a-Ec5.fits),
-   - [xillverD-4.fits](http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/xillverD-4.fits.gz).
+    - [xillver-a-Ec5.fits](https://hea-www.cfa.harvard.edu/%7Ejavier/xillver/tables/xillver-a-Ec5.fits),
+    - [xillverD-4.fits](http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/xillverD-4.fits.gz).
 
 Usage in XSPEC
 --------------
