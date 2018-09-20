@@ -457,8 +457,8 @@ param[ 8] = 3.;       // height
 param[ 9] = 2.;       // PhoIndex
 param[10] = 0.001;    // L/Ledd
 param[11] = 1.;       // Np:Nr
-param[12] = 1.;       // density
-param[13] = 0.;       // den_prof
+param[12] = 1.;       // density/ionisation
+param[13] = 0.;       // den_prof/ion_prof
 param[14] = 1.;       // abun
 param[15] = 0.;       // thermalisation
 param[16] = 0.1;      // arate
@@ -2060,8 +2060,8 @@ for(ie=0;ie<ne;ie++){
   spectrum[ie]=0.;
   for(it=0;it<nt;it++) spectrum[ie] += far[ie+ne*it];
 // we have to divide by duration of the flare, flare_duration_rg, however,
-// we did not multiply by deltaT, thus we have to divide by
-// flare_duration_rg / (deltaT)
+// we did not multiply by deltaT (i.e. far is per second), thus we have to 
+// divide by flare_duration_rg / (deltaT)
   spectrum[ie] *= dt / flare_duration_rg;
   if(NpNr != 0.)spectrum_prim[ie] = far_prim[ie];
 }
@@ -2268,6 +2268,7 @@ if(photar_sw){
 //      photar[ie] /= flare_duration_rg;  <-- we have already divided by flare duration!
     }
   }else if(time1 >= time2){
+//  we compute flux per second at time time1
 //  given time1, find the corresponding index in time[]:
     it0 = (int) ceil( (time1 - time[0]) / deltaT + 1 );
     if(it0 < 1) it0 = 1;
@@ -2310,7 +2311,10 @@ if(photar_sw){
 //    all the whole bins
       for(it=it0+1;it<itn;it++) photar[ie] += (far[ie+ne*it]+far[ie+ne*(it-1)])/2.;
       photar[ie] *= dt / flare_duration_rg;
-      if(NpNr != 0.)photar[ie] += far_prim[ie];
+      if(NpNr != 0. && time1_rg <= flare_duration_rg ){
+        if(time2_rg < flare_duration_rg)photar[ie] += far_prim[ie] * (time2-time1);
+        else photar[ie] += far_prim[ie] * (flare_duration_sec-time1);
+      }
     }
   }
 }

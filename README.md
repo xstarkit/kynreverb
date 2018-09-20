@@ -177,16 +177,16 @@ source code. Summary of the parameters:
   * **par2  ... theta_o**
     - observer inclination in degrees (0&deg;-pole, 90&deg;-disc)
   * **par3  ... rin**
-    - inner edge of non-zero disc emissivity (in GM/c^2 or in r~mso~)
+    - inner edge of non-zero disc emissivity (in GM/c^2 or in r<sub>mso</sub>)
   * **par4  ... ms**
     - switch for inner edge
     - 0: we integrate from inner edge = par3 
     - 1: if the inner edge of the disc is below marginally stable orbit (MSO) 
          then we integrate emission above MSO only
     - 2: we integrate from inner edge given in units of MSO, i.e. inner 
-         edge = par3 &times; r~mso~ (the same applies for outer edge)
+         edge = par3 &times; r<sub>mso</sub> (the same applies for outer edge)
   * **par5  ... rout**
-    - outer edge of non-zero disc emissivity (in GM/c^2 or in r~mso~)
+    - outer edge of non-zero disc emissivity (in GM/c^2 or in r<sub>mso</sub>)
   * **par6  ... phi**
     - lower azimuth of non-zero disc emissivity (degrees)
   * **par7  ... dphi**
@@ -199,17 +199,17 @@ source code. Summary of the parameters:
       source is located (GM/c^(2))
   * **par10 ... PhoIndex**
     - power-law energy index of the primary flux
-  * **par11 ... L/L~Edd~**
+  * **par11 ... L/L<sub>Edd</sub>**
     - dE/dt, the intrinsic local (if negative) or the observed 
       (if positive) primary isotropic flux in the X-ray energy range 2-10keV 
-      in units of L~Edd~
+      in units of L<sub>Edd</sub>
   * **par12 ... Np:Nr**
     - ratio of the primary to the reflected normalization
     - 1: self-consistent model for isotropic primary source
     - 0: only reflection, primary source is hidden
-    - if positive then L/L~Edd~ (par11) means the luminosity towards the 
+    - if positive then L/L<sub>Edd</sub> (par11) means the luminosity towards the 
       observer
-    - if negative then L/L~Edd~ (par11) means the luminosity towards the disc
+    - if negative then L/L<sub>Edd</sub> (par11) means the luminosity towards the disc
   * **par13 ... density/ionisation**
     - density profile normalization in 10^15 cm^(-3) if positive
     - ionisation profile normalisation if it is negative
@@ -230,7 +230,7 @@ source code. Summary of the parameters:
     - abs(par16) > 1: the fraction of thermalisation is computed from 
                       difference between the incident and reflected fluxes
   * **par17 ... arate**
-    - accretion rate in units of L~Edd~ if positive or in Solar mass per  
+    - accretion rate in units of L<sub>Edd</sub> if positive or in Solar mass per  
       Julian year (365.25 days) if negative
   * **par18 ... f_col**  
     - spectral hardening factor
@@ -330,8 +330,8 @@ source code. Summary of the parameters:
       Af&times;f^(qf), used for par38=+16 and par38=+18; 
       if par36=-1 then the following hard lags prescription is used (see 
       Epitropakis & Papadakis, 2017):
-      100 * log10(E~ref~/E) * (f/1e-4)^(-1) s
-      with E~ref~ being middle of the reference energy band and E middle of 
+      100 * log10(E<sub>ref</sub>/E) * (f/1e-4)^(-1) s
+      with E<sub>ref</sub> being middle of the reference energy band and E middle of 
       the energy band of interest
   * **par37 ... Amp/qf**
     - multiplicative factor for the amplitude-energy dependence in case of 
@@ -527,16 +527,16 @@ source code. Summary of the parameters:
   * **par2  ... theta_o**
     - observer inclination in degrees (0&deg;-pole, 90&deg;-disc)
   * **par3  ... rin**
-    - inner edge of non-zero disc emissivity (in GM/c^2 or in r~mso~)
+    - inner edge of non-zero disc emissivity (in GM/c^2 or in r<sub>mso</sub>)
   * **par4  ... ms**
     - switch for inner edge
     - 0: we integrate from inner edge = par3 
     - 1: if the inner edge of the disc is below marginally stable orbit (MSO) 
          then we integrate emission above MSO only
     - 2: we integrate from inner edge given in units of MSO, i.e. inner 
-         edge = par3 &times; r~mso~ (the same applies for outer edge)
+         edge = par3 &times; r<sub>mso</sub> (the same applies for outer edge)
   * **par5  ... rout**
-    - outer edge of non-zero disc emissivity (in GM/c^2 or in r~mso~)
+    - outer edge of non-zero disc emissivity (in GM/c^2 or in r<sub>mso</sub>)
   * **par6  ... phi**
     - lower azimuth of non-zero disc emissivity (degrees)
   * **par7  ... dphi**
@@ -549,17 +549,17 @@ source code. Summary of the parameters:
       source is located (GM/c^(2))
   * **par10 ... PhoIndex**
     - power-law energy index of the primary flux
-  * **par11 ... L/L~Edd~**
+  * **par11 ... L/L<sub>Edd</sub>**
     - dE/dt, the intrinsic local (if negative) or the observed 
       (if positive) primary isotropic flux in the X-ray energy range 2-10keV 
-      in units of L~Edd~
+      in units of L<sub>Edd</sub>
   * **par12 ... Np:Nr**
     - ratio of the primary to the reflected normalization
     - 1: self-consistent model for isotropic primary source
     - 0: only reflection, primary source is hidden
-    - if positive then L/L~Edd~ (par11) means the luminosity towards the 
+    - if positive then L/L<sub>Edd</sub> (par11) means the luminosity towards the 
       observer
-    - if negative then L/L~Edd~ (par11) means the luminosity towards the disc
+    - if negative then L/L<sub>Edd</sub> (par11) means the luminosity towards the disc
   * **par13 ... density/ionisation**
     - density profile normalization in 10^15 cm^(-3) if positive, 
       i.e. n = par13 &times; r^(par14)
@@ -588,7 +588,7 @@ source code. Summary of the parameters:
     - abs(par17) > 1: the fraction of thermalisation is computed from 
                       difference between the incident and reflected fluxes
   * **par18 ... arate**
-    - accretion rate in units of L~Edd~ if positive or in Solar mass per  
+    - accretion rate in units of L<sub>Edd</sub> if positive or in Solar mass per  
       Julian year (365.25 days) if negative
   * **par19 ... f_col**
     - spectral hardening factor
@@ -695,8 +695,8 @@ source code. Summary of the parameters:
       Af&times;f^(qf), used for par38=+16 and par38=+18; 
       if par36=-1 then the following hard lags prescription is used (see 
       Epitropakis & Papadakis, 2017):
-      100 * log10(E~ref~/E) * (f/1e-4)^(-1) s
-      with E~ref~ being middle of the reference energy band and E middle of 
+      100 * log10(E<sub>ref</sub>/E) * (f/1e-4)^(-1) s
+      with E<sub>ref</sub> being middle of the reference energy band and E middle of 
       the energy band of interest
   * **par37 ... Amp/qf**
     - multiplicative factor for the amplitude-energy dependence in case of 
