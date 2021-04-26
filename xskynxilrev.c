@@ -88,7 +88,7 @@
  *                           computed
  *                     > 0 - both the thermal and reflection reverberation is
  *                           included
- *                     abs(par16) > 1 - the fraction of thermalisation is 
+ *                     abs(par17) > 1 - the fraction of thermalisation is 
  *                                      computed from difference between the 
  *                                      incident and reflected fluxes
  * par18 ... arate  - accretion rate in units of Ledd if positive or in 
@@ -599,7 +599,8 @@ extern int       exclude_energy;
 /* Let's declare variables that are common for the main and emissivity 
    subroutines */
 static float  *xi=NULL, *logxi=NULL, *Ecut=NULL, *logden=NULL, *cose=NULL;
-static double *gfac=NULL, *transf_d=NULL, *energy1=NULL, *flux1=NULL;
+static double *gfac=NULL, *transf_d=NULL, *cos_ad=NULL, *energy1=NULL, 
+              *flux1=NULL, *flux_int=NULL;
 //static double *cosin=NULL, *phiph=NULL;
 static double *flx=NULL;
 static double h, gamma0, nH0, qn, mass, mass2, am2, r_plus, Np, dt,
@@ -651,8 +652,9 @@ static char   pname[128] = "KYDIR", pkyLxLamp[128] = "KYLxLamp";
 static char   pkyxiin[128] = "KYXIin", pkyxiout[128] = "KYXIout";
 static char   pkyRefl[128] = "KYRefl", pkyfwrap[128] = "KYfwrap";
 static long   nrh, nh, nincl, nener;
-static float  *r_horizon, *height, *incl, *dWadWo, *delay_a, *q, *pr, *dWadSd, 
-              *delay, *abun, *gam, *emission, *energy0;
+static float  *r_horizon, *height, *incl, *q2_a, *dWadWo, *delay_a, *q, 
+              *pr, *dWadSd, *delay, *abun, *gam, *emission, *energy0;
+static double *mu_ad;
 static long   ne_loc, nabun, ngam;
 static double *energy2, *flux0, transf_o, del_a;
 static double h_rh_old = -1., gam_old = -1., abun_old = -1., thetaO_old = -1.,
@@ -684,10 +686,11 @@ double en1=0., en2=0., en3=0., en4=0.;
 double lag_shift=0., ampl_ampl=1.;
 double ttmp, ttmp1, utmp, utmp1, vtmp, vtmp1, y1, y2, y3, y4, y5, y6, y7, y8;
 double pr_final, pom, pom1, pom2, pom3;
-double r, r2, delta, ULt, rms, tmp1, Ut, U_r, UrU_r, Lms, Ems, Ut_rms;
+double r, r2, delta, ULt, rms, tmp1, Ut, U_r, UrU_r, Lms, Ems, Ut_rms,
+       q2_a_final;
 //double q_final, U_phi, Ur;
 double thetaO, rin=0., rout, h_rh, elow, ehigh;
-double Anorm, Dnorm, g_L, Lx;
+double dcose, Anorm, Dnorm, g_L, Lx, cos_ao;
 double flux_prim_tot, flux_refl_tot, refl_ratio, NpNr;
 double zzshift;
 double abundance, lensing, gfactor0, ionisation;
@@ -696,10 +699,10 @@ double time1=0., time1_rg=0., time2=0., time2_rg=0., frequency1=0.,
        frequency2=0., tot_time_sec, deltaT, Af=0., qf=0., fmin, fmax, dt0;
 double Tmax, Tmax_final, freq_min, freq_max;
 double sumt, sumf, sumt2, sumtf, qtime, Atime;
-long   nt, iabun, igam, ixi, iEcut, ilogden, icose, it;
+long   nt, iabun, igam, ixi, iEcut, ilogden, icose, it, index;
 int    imin, imax, irh0, ih0, ith0, ir0, iabun0, igam0;
 int    nt0, nspec, polar, stokes, photar_sw, npoints;
-int    i, ie, je, quit, it0, itn, iband;
+int    i, ie, je, quit, it0, itn, iband, ih;
 //int  itmin;
 //double photar1_xspec[ne_xspec]; photar1_short[3], *photar1=NULL;
 //double gf_xspec[ne_xspec+1], gf_short[4], *gf=NULL;
@@ -1329,11 +1332,13 @@ if(first_h) {
 //******************************************************************************
 //  for ( i=0; i<nradius; i++)fprintf(stdout,"%f\n",radius[i]);
 //******************************************************************************   
-// Let's read the tables for dWadWo, q, p^r and dWadSd
+// Let's read the tables for q2_a, dWadWo, q, p^r and dWadSd
 // allocate memory for the arrays
-  if ((dWadWo  = (float *) malloc(nincl * nh * nrh * sizeof(float))) == NULL ||
+  if ((q2_a    = (float *) malloc(nincl * nh * nrh * sizeof(float))) == NULL ||
+      (dWadWo  = (float *) malloc(nincl * nh * nrh * sizeof(float))) == NULL ||
       (delay_a = (float *) malloc(nincl * nh * nrh * sizeof(float))) == NULL ||
       (q     = (float *) malloc(nradius * nh * nrh * sizeof(float))) == NULL ||
+      (mu_ad = (double *)malloc(nradius * nh * nrh * sizeof(double)))== NULL ||
       (pr    = (float *) malloc(nradius * nh * nrh * sizeof(float))) == NULL ||
       (dWadSd= (float *) malloc(nradius * nh * nrh * sizeof(float))) == NULL ||
       (delay = (float *) malloc(nradius * nh * nrh * sizeof(float))) == NULL ){
@@ -1357,6 +1362,9 @@ if(first_h) {
         nelements2 = (nh - irow) * nradius;
       }
       ffgcv(fptr, TFLOAT, 2, irow + 1, 1, nelements1, &float_nulval, 
+            &q2_a[irow * nincl + nh * nincl * ihorizon],
+            &anynul, &status);
+      ffgcv(fptr, TFLOAT, 2, irow + 1, 1, nelements1, &float_nulval, 
             &dWadWo[irow * nincl + nh * nincl * ihorizon],
             &anynul, &status);
       ffgcv(fptr, TFLOAT, 3, irow + 1, 1, nelements1, &float_nulval, 
@@ -1378,6 +1386,65 @@ if(first_h) {
   }
 // The FITS file must always be closed before exiting the program.
   ffclos(fptr, &status);
+// To compute cosine of the light rays from the lamp in the lamp frame
+// and to interpolate it properly we need to compute the full grid in spin,
+// height and radius
+  for (ihorizon = 0; ihorizon < nrh; ihorizon++){
+    // ttmp here is spin^2:
+    ttmp = 1. - ((double) r_horizon[ihorizon]-1.) *
+                ((double) r_horizon[ihorizon]-1.);
+    for (ih = 0; ih < nh; ih++){
+      // utmp here is (h^2+a^2)
+      utmp = ttmp + ((double) height[ih] + (double) r_horizon[ihorizon]) * 
+                    ((double) height[ih] + (double) r_horizon[ihorizon]);
+      // utmp1 here is (h^2+a^2-2*h)
+      utmp1 = utmp - 2. * ((double) r_horizon[ihorizon] + (double) height[ih]);
+      // utmp here is (h^2+a^2)^2
+      utmp = utmp * utmp;
+      for (i = 0; i < nradius; i++) {
+        index = i + nradius * ih + nradius * nh * ihorizon;
+        ttmp1 = ttmp + (double) q[index] * (double) q[index];
+        // cosine on the axis for photon rays from the axis to the disc
+        // mu_ad[index] = 1.-(h^2+a^2-2h)*(a^2+q^2)/(h^2+a^2)^2
+        mu_ad[index] = 1. - utmp1 * ttmp1 / utmp;
+        if(mu_ad[index] < 0.){
+          if(fabs(mu_ad[index]) > 1.e-5){
+            sprintf(errortxt, "kynxilrev: square root of negative number: %g\n", 
+                    mu_ad[index]);
+            xs_write(errortxt, 5);
+          }
+          mu_ad[index] = 0.;
+        }
+        // in the following we still miss the right sign
+        mu_ad[index] = sqrt(mu_ad[index]);
+      }
+      // let's correct the sign in mu_ad
+      for (i = 0; i < nradius-1; i++) {
+        index = i + nradius * ih + nradius * nh * ihorizon;
+        if(mu_ad[index] > mu_ad[index+1]) mu_ad[index] = -mu_ad[index];
+        else break;
+      }
+      index = i + nradius * ih + nradius * nh * ihorizon;
+      // decide about mu_ad[index]
+      if (i == 0){
+        vtmp = (mu_ad[index+2]-mu_ad[index+1]) / (radius[i+2]-radius[i+1]) -
+               (mu_ad[index+1]-mu_ad[index]) / (radius[i+1]-radius[i]);
+        vtmp1 = (mu_ad[index+2]-mu_ad[index+1]) / (radius[i+2]-radius[i+1]) -
+                (mu_ad[index+1]+mu_ad[index]) / (radius[i+1]-radius[i]);
+      }else if (i == nradius-1){
+        vtmp = (mu_ad[index]-mu_ad[index-1]) / (radius[i]-radius[i-1]) -
+               (mu_ad[index-1]-mu_ad[index-2]) / (radius[i-1]-radius[i-2]);
+        vtmp1 = (-mu_ad[index]-mu_ad[index-1]) / (radius[i]-radius[i-1]) -
+                (mu_ad[index-1]-mu_ad[index-2]) / (radius[i-1]-radius[i-2]);
+      }else{
+        vtmp = (mu_ad[index+1]-mu_ad[index]) / (radius[i+1]-radius[i]) -
+               (mu_ad[index]-mu_ad[index-1]) / (radius[i]-radius[i-1]);
+        vtmp1 = (mu_ad[index+1]+mu_ad[index]) / (radius[i+1]-radius[i]) -
+                (-mu_ad[index]-mu_ad[index-1]) / (radius[i]-radius[i-1]);
+      }
+      if (fabs(vtmp1) < fabs(vtmp)) mu_ad[index] = -mu_ad[index];
+    }
+  }
 /*******************************************************************************
   irh=20;
   ih=99;
@@ -1387,9 +1454,10 @@ if(first_h) {
     q[i+nradius*ih+nradius*nh*irh],pr[i+nradius*ih+nradius*nh*irh],
     dWadSd[i+nradius*ih+nradius*nh*irh]);
 *******************************************************************************/
-// Firstly we have to free allocated memory for the arrays gfac,
+// Firstly we have to allocate memory for the arrays gfac,
 // cosin, phiph, transf_d
-  if((gfac    = (double *) malloc(nradius * sizeof(double))) == NULL ||
+  if((cos_ad  = (double *) malloc(nradius * sizeof(double))) == NULL ||
+     (gfac    = (double *) malloc(nradius * sizeof(double))) == NULL ||
 //     (cosin   = (double *) malloc(nradius * sizeof(double))) == NULL ||
 //     (phiph   = (double *) malloc(nradius * sizeof(double))) == NULL ||
      (transf_d= (double *) malloc(nradius * sizeof(double))) == NULL ||
@@ -1463,6 +1531,29 @@ if ((am != am_old) || (h_rh != h_rh_old) || (thetaO != thetaO_old)) {
 //if ((imax == nincl) && (thetaO > incl[nincl - 1])) ith0 = nincl;
   vtmp = (thetaO - incl[ith0 - 1]) / (incl[ith0] - incl[ith0 - 1]);
   vtmp1 = 1. - vtmp;
+// cosine on the axis for photon rays towards the observer
+  y1 = q2_a[ith0 - 1 + nincl * (ih0 - 1) + nincl * nh * (irh0 - 1)];
+  y2 = q2_a[ith0 - 1 + nincl * (ih0 - 1) + nincl * nh * irh0];
+  y3 = q2_a[ith0 - 1 + nincl * ih0 + nincl * nh * irh0];
+  y4 = q2_a[ith0 - 1 + nincl * ih0 + nincl * nh * (irh0 - 1)];
+  y5 = q2_a[ith0 + nincl * (ih0 - 1) + nincl * nh * (irh0 - 1)];
+  y6 = q2_a[ith0 + nincl * (ih0 - 1) + nincl * nh * irh0];
+  y7 = q2_a[ith0 + nincl * ih0 + nincl * nh * irh0];
+  y8 = q2_a[ith0 + nincl * ih0 + nincl * nh * (irh0 - 1)];
+  q2_a_final = (vtmp1 * (utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+                         utmp  *  (ttmp * y3 + ttmp1 * y4)) + 
+                vtmp  * (utmp1 * (ttmp1 * y5 + ttmp  * y6) + 
+                         utmp  *  (ttmp * y7 + ttmp1 * y8)));
+  cos_ao = 1.-(h*h+am2-2.*h)*(am2+q2_a_final)/(h*h+am2)/(h*h+am2);
+  if(cos_ao < 0.){
+    if(fabs(cos_ao) > 1.e-5){
+      sprintf(errortxt, "kynxilrev: square root of negative number: %g\n", 
+              cos_ao);
+      xs_write(errortxt, 5);
+    }
+    cos_ao = 0.;
+  }
+  cos_ao = sqrt(cos_ao);
 // transfer function from the axis to the observer
   y1 = dWadWo[ith0 - 1 + nincl * (ih0 - 1) + nincl * nh * (irh0 - 1)];
   y2 = dWadWo[ith0 - 1 + nincl * (ih0 - 1) + nincl * nh * irh0];
@@ -1485,10 +1576,10 @@ if ((am != am_old) || (h_rh != h_rh_old) || (thetaO != thetaO_old)) {
   y6 = delay_a[ith0 + nincl * (ih0 - 1) + nincl * nh * irh0];
   y7 = delay_a[ith0 + nincl * ih0 + nincl * nh * irh0];
   y8 = delay_a[ith0 + nincl * ih0 + nincl * nh * (irh0 - 1)];
-  del_a = (vtmp1 * (utmp1 * (ttmp1 * y1 + ttmp * y2) + 
-                    utmp *  (ttmp * y3 + ttmp1 * y4)) + 
-           vtmp * (utmp1 * (ttmp1 * y5 + ttmp * y6) + 
-                   utmp *  (ttmp * y7 + ttmp1 * y8)));
+  del_a = (vtmp1 * (utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+                    utmp  *  (ttmp * y3 + ttmp1 * y4)) + 
+           vtmp * (utmp1 * (ttmp1 * y5 + ttmp  * y6) + 
+                   utmp  *  (ttmp * y7 + ttmp1 * y8)));
   if ((am != am_old) || (h_rh != h_rh_old)) {
     for (i = 0; i < nradius; i++) {
 /*
@@ -1497,16 +1588,23 @@ if ((am != am_old) || (h_rh != h_rh_old) || (thetaO != thetaO_old)) {
       y2 = q[i + nradius * (ih0 - 1) + nradius * nh * irh0];
       y3 = q[i + nradius * ih0 + nradius * nh * irh0];
       y4 = q[i + nradius * ih0 + nradius * nh * (irh0 - 1)];
-      q_final = utmp1 * (ttmp1 * y1 + ttmp * y2) + 
-                utmp * (ttmp * y3 + ttmp1 * y4);
+      q_final = utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+                utmp  * (ttmp  * y3 + ttmp1 * y4);
 */
+// cosine on the axis for photon rays from the axis to the disc
+      y1 = mu_ad[i + nradius * (ih0 - 1) + nradius * nh * (irh0 - 1)];
+      y2 = mu_ad[i + nradius * (ih0 - 1) + nradius * nh * irh0];
+      y3 = mu_ad[i + nradius * ih0 + nradius * nh * irh0];
+      y4 = mu_ad[i + nradius * ih0 + nradius * nh * (irh0 - 1)];
+      cos_ad[i] = utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+                  utmp  * (ttmp  * y3 + ttmp1 * y4);
 // pr at the disc
       y1 = pr[i + nradius * (ih0 - 1) + nradius * nh * (irh0 - 1)];
       y2 = pr[i + nradius * (ih0 - 1) + nradius * nh * irh0];
       y3 = pr[i + nradius * ih0 + nradius * nh * irh0];
       y4 = pr[i + nradius * ih0 + nradius * nh * (irh0 - 1)];
-      pr_final = utmp1 * (ttmp1 * y1 + ttmp * y2) + 
-                 utmp * (ttmp * y3 + ttmp1 * y4);
+      pr_final = utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+                 utmp  * (ttmp  * y3 + ttmp1 * y4);
 // temporary variables
       r = r_plus + radius[i];
       r2 = r * r;
@@ -1544,22 +1642,22 @@ if ((am != am_old) || (h_rh != h_rh_old) || (thetaO != thetaO_old)) {
       y2 = dWadSd[i + nradius * (ih0 - 1) + nradius * nh * irh0];
       y3 = dWadSd[i + nradius * ih0 + nradius * nh * irh0];
       y4 = dWadSd[i + nradius * ih0 + nradius * nh * (irh0 - 1)];
-      transf_d[i] = utmp1 * (ttmp1 * y1 + ttmp * y2) + 
-                    utmp * (ttmp * y3 + ttmp1 * y4);
+      transf_d[i] = utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+                    utmp  * (ttmp  * y3 + ttmp1 * y4);
 // delay from the axis to the disc
       y1 = delay[i + nradius * (ih0 - 1) + nradius * nh * (irh0 - 1)];
       y2 = delay[i + nradius * (ih0 - 1) + nradius * nh * irh0];
       y3 = delay[i + nradius * ih0 + nradius * nh * irh0];
       y4 = delay[i + nradius * ih0 + nradius * nh * (irh0 - 1)];
-      del[i] = utmp1 * (ttmp1 * y1 + ttmp * y2) + 
-               utmp * (ttmp * y3 + ttmp1 * y4);
+      del[i] = utmp1 * (ttmp1 * y1 + ttmp  * y2) + 
+               utmp  * (ttmp  * y3 + ttmp1 * y4);
     }
   }
 //******************************************************************************
-//    fprintf(stdout,"%f %f\n", thetaO, transf_o);
+//    fprintf(stdout,"%f %f %f\n", thetaO, transf_o, cos_ao);
 //    for(i = 0; i < nradius; i++) 
-//      fprintf(stdout,"%d %f %f %f %f %f\n", i, radius[i], gfac[i], cosin[i], 
-//              phiph[i], transf_d[i]);
+//      fprintf(stdout,"%d %f %f %f %f\n", i, radius[i], gfac[i],
+//              transf_d[i], cos_ad[i]);
 //******************************************************************************
 }
 /******************************************************************************/
@@ -1608,6 +1706,7 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
     if(emission != NULL){ free((void *) emission); emission = NULL;}
     if(flux0 != NULL){ free((void *) flux0); flux0 = NULL;}
     if(flux1 != NULL){ free((void *) flux1); flux1 = NULL;}
+    if(flux_int != NULL){ free((void *) flux_int); flux_int = NULL;}
     if(energy1 != NULL){ free((void *) energy1); energy1 = NULL;}
     if(energy2 != NULL){ free((void *) energy2); energy2 = NULL;}
     if(flx != NULL){ free((void *) flx); flx = NULL;}
@@ -2079,12 +2178,8 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
   switch (rix) {
     case 3: {
       if ((flux0 = (double *) malloc(ne_loc * nEcut * nxi * 
-                                     sizeof(double))) == NULL) {
-        xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
-        for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
-        return;
-      }
-      if ((flux1 = (double *) malloc(nener * nEcut * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux1 = (double *) malloc(nener * nEcut * nxi *
                                      sizeof(double))) == NULL) {
         xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
         for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
@@ -2093,12 +2188,10 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
     } break;
     case 2: {
       if ((flux0 = (double *) malloc(ne_loc * ncose * nxi * 
-                                     sizeof(double))) == NULL) {
-        xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
-        for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
-        return;
-      }
-      if ((flux1 = (double *) malloc(nener * ncose * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux1 = (double *) malloc(nener * ncose * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux_int = (double *) malloc(nener * nxi *
                                      sizeof(double))) == NULL) {
         xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
         for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
@@ -2106,12 +2199,8 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
       }
     } break;
     case 1: {
-      if ((flux0 = (double *) malloc(ne_loc * nxi * sizeof(double))) == NULL) {
-        xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
-        for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
-        return;
-      }
-      if ((flux1 = (double *) malloc(nener * nxi * sizeof(double))) == NULL) {
+      if ((flux0 = (double *) malloc(ne_loc * nxi * sizeof(double))) == NULL ||
+          (flux1 = (double *) malloc(nener * nxi * sizeof(double))) == NULL) {
         xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
         for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
         return;
@@ -2119,12 +2208,10 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
     } break;
     case 11: {
       if ((flux0 = (double *) malloc(ne_loc * ncose * nlogden * nxi * 
-                                     sizeof(double))) == NULL) {
-        xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
-        for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
-        return;
-      }
-      if ((flux1 = (double *) malloc(nener * ncose * nlogden * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux1 = (double *) malloc(nener * ncose * nlogden * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux_int = (double *) malloc(nener * nlogden * nxi *
                                      sizeof(double))) == NULL) {
         xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
         for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
@@ -2133,12 +2220,10 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
     } break;
     default: {
       if ((flux0 = (double *) malloc(ne_loc * ncose * nEcut * nxi * 
-                                     sizeof(double))) == NULL) {
-        xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
-        for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
-        return;
-      }
-      if ((flux1 = (double *) malloc(nener * ncose * nEcut * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux1 = (double *) malloc(nener * ncose * nEcut * nxi *
+                                     sizeof(double))) == NULL ||
+          (flux_int = (double *) malloc(nener * nEcut * nxi *
                                      sizeof(double))) == NULL) {
         xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
         for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
@@ -2146,12 +2231,8 @@ if ((strcmp(kydir, FGMSTR(pname)) != 0) || (rix != rix_old) || first_rix) {
       }
     } break;
   }
-  if ((energy1 = (double *) malloc((nener + 1) * sizeof(double))) == NULL) {
-    xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
-    for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
-    return;
-  }
-  if ((energy2 = (double *) malloc((nener + 1) * sizeof(double))) == NULL) {
+  if ((energy1 = (double *) malloc((nener + 1) * sizeof(double))) == NULL ||
+      (energy2 = (double *) malloc((nener + 1) * sizeof(double))) == NULL) {
     xs_write("kynxilrev: Failed to allocate memory for tmp arrays.", 5);
     for (ie = 0; ie < ne; ie++) photar[ie] = 0.;
     return;
@@ -2822,6 +2903,58 @@ if ((rix != rix_old) || (strcmp(kydir, FGMSTR(pname)) != 0) || ((abun_old == -1.
     } break;
   }
 *******************************************************************************/
+//Compute the total reflected flux integrated in emission solid angle
+  if(fabs(thermalisation)>1.){
+    switch (rix) {
+      case 3: {//do nothing
+      } break;
+      case 2: {
+        for (ixi = 0; ixi < nxi; ixi++)
+          for (ie = 0; ie < nener; ie++){ 
+            flux_int[ie + nener * ixi] = 0.;
+            dcose = 1.;
+            for (icose = 0; icose < ncose; icose++){
+              if( icose > 0 ) dcose = ( cose[icose] + cose[icose-1] ) / 2.;
+              if( icose < ncose-1 ) dcose -= ( cose[icose+1] + cose[icose] ) / 2.;
+              flux_int[ie + nener * ixi] += 
+                flux1[ie + nener * icose + nener * ncose * ixi] * cose[icose] * fabs(dcose) * PI2;
+            }
+          }
+      } break;
+      case 1: {//do nothing
+      } break;
+      case 11: {
+        for (ixi = 0; ixi < nxi; ixi++)
+          for (ilogden = 0; ilogden < nlogden; ilogden++)
+            for (ie = 0; ie < nener; ie++){
+              flux_int[ie + nener * ilogden + nener * nlogden * ixi] = 0.;
+              dcose = 1.;
+              for (icose = 0; icose < ncose; icose++){
+                if( icose > 0 ) dcose = ( cose[icose] + cose[icose-1] ) / 2.;
+                if( icose < ncose-1 ) dcose -= ( cose[icose+1] + cose[icose] ) / 2.;
+                flux_int[ie + nener * ilogden + nener * nlogden * ixi] +=
+                  flux1[ie + nener * icose + nener * ncose * ilogden +
+                        nener * ncose * nlogden * ixi] * cose[icose] * fabs(dcose) * PI2;
+              }
+            }
+      } break;
+      default: {
+        for (ixi = 0; ixi < nxi; ixi++)
+          for (iEcut = 0; iEcut < nEcut; iEcut++)
+            for (ie = 0; ie < nener; ie++){
+              flux_int[ie + nener * iEcut + nener * nEcut * ixi] = 0.;
+              dcose = 1.;
+              for (icose = 0; icose < ncose; icose++){
+                if( icose > 0 ) dcose = ( cose[icose] + cose[icose-1] ) / 2.;
+                if( icose < ncose-1 ) dcose -= ( cose[icose+1] + cose[icose] ) / 2.;
+                flux_int[ie + nener * iEcut + nener * nEcut * ixi] +=
+                  flux1[ie + nener * icose + nener * ncose * iEcut +
+                        nener * ncose * nEcut * ixi] * cose[icose] * fabs(dcose) * PI2;
+              }
+            }
+      } break;
+    }
+  }
   abun_old = abundance;
   gam_old = gamma0;
 }
@@ -3367,8 +3500,9 @@ void emis_KYNxilrev(double** ear_loc, const int ne_loc, const long nt,
 // disc surface in polar coords r, phi;
 // cosine of local emission angle --> cosmu
 
-double factor, factor1, factor2, factor3, factor4, gfactor, lensing, ionisation;
-double fluxe[ne_loc];
+double factor0, factor, factor1, factor2, factor3, factor4, gfactor, lensing, 
+       ionisation;
+double fluxe[ne_loc], flux_inte[ne_loc];
 double temp, x, Ccal, Lcal, Fbb, Finc, Frefl, Ftherm, temp_new, flux_thermal;
 double time, delay0;
 double ttmp, ttmp1, utmp, utmp1, vtmp, vtmp1, y1, y2, y3, y4, y5, y6, y7, y8;
@@ -3379,10 +3513,10 @@ char   errortext[255];
 
 *ear_loc = energy1;
 // Normalization due to an imposed emissivity law
-if (limb == 0) factor = 1. / PI;
-if (limb == 1) factor = 1. / PI / (1. + 2.06 * 2. / 3.) * (1. + 2.06 * cosmu);
-if (limb == 2) factor = 1. / PI * log(1. + 1. / cosmu);
-factor *= XILLVER_NORM;
+if (limb == 0) factor0 = 1. / PI;
+if (limb == 1) factor0 = 1. / PI / (1. + 2.06 * 2. / 3.) * (1. + 2.06 * cosmu);
+if (limb == 2) factor0 = 1. / PI * log(1. + 1. / cosmu);
+factor = XILLVER_NORM;
 // given r, find corresponding indices in radius:
 imin = 0;
 imax = nradius;
@@ -3402,7 +3536,7 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
   ttmp1 = 1. - ttmp;
 // Let's interpolate delay between two radii
   delay0 = ttmp * del[ir0] + ttmp1 * del[ir0 - 1];
-    if((delay0+delay-t0 > nt*dt) || (t0-delay0-delay > flare_duration_rg)){
+  if((delay0+delay-t0 > nt*dt) || (t0-delay0-delay > flare_duration_rg)){
     for(it=0; it < nt; it++) far_loc[ne_loc+(ne_loc+1)*it]=0.;
   }else{
 //  Let's interpolate gfactor between two radii
@@ -3491,7 +3625,11 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
             y4 = flux1[ie + ne_loc * iEcut0 + ne_loc * nEcut * (ixi0 - 1)];
             fluxe[ie] = (utmp1 * (ttmp1 * y1 + ttmp * y2) * factor2 +
                          utmp * (ttmp * y3 + ttmp1 * y4) * factor3) *
-                         factor * factor1 * factor4;
+                         factor0 * factor * factor1 * factor4;
+            if( fabs(thermalisation) > 1. )
+              flux_inte[ie] = (utmp1 * (ttmp1 * y1 + ttmp * y2) * factor2 +
+                               utmp * (ttmp * y3 + ttmp1 * y4) * factor3) *
+                               factor * factor1 * factor4;          
           }
         } break;
         case 2: {
@@ -3526,6 +3664,13 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
             fluxe[ie] = (utmp1 * (ttmp1 * y1 + ttmp * y2) +
                          utmp * (ttmp1 * y3 + ttmp * y4)) * factor * factor1;
 //                       * factor2;
+            if( fabs(thermalisation) > 1. ){          
+              y1 = flux_int[ie + ne_loc * (ixi0 - 1)];
+              y2 = flux_int[ie + ne_loc *  ixi0];
+//              factor2 = exp( energy1[ie] / Ecut0 * (1.-1./gfactor) );
+              flux_inte[ie] = (ttmp1 * y1 + ttmp * y2) * factor * factor1;
+//                           * factor2;
+            } 
           }
         } break;
         case 1: {
@@ -3535,8 +3680,11 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
             y1 = flux1[ie + ne_loc * (ixi0 - 1)];
             y2 = flux1[ie + ne_loc * ixi0];
 //          factor2 = exp( energy1[ie] / Ecut0 * (1.-1./gfactor) );
-            fluxe[ie] = (ttmp1 * y1 + ttmp * y2) * factor * factor1;
+            fluxe[ie] = (ttmp1 * y1 + ttmp * y2) * factor0 * factor * factor1;
 //                      * factor2;
+            if( fabs(thermalisation) > 1. )
+              flux_inte[ie] = (ttmp1 * y1 + ttmp * y2) * factor * factor1;
+//                            * factor2;
           }
         } break;
         case 11: {
@@ -3618,6 +3766,17 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
                                  utmp * (ttmp * y7 + ttmp1 * y8))) *
                          factor * factor1;
 //                       * factor2;
+            if( fabs(thermalisation) > 1. ){          
+              y1 = flux_int[ie + ne_loc * (ilogden0 - 1) + ne_loc * nlogden * (ixi0 - 1)];
+              y2 = flux_int[ie + ne_loc * (ilogden0 - 1) + ne_loc * nlogden *  ixi0];
+              y3 = flux_int[ie + ne_loc *  ilogden0      + ne_loc * nlogden *  ixi0];
+              y4 = flux_int[ie + ne_loc *  ilogden0      + ne_loc * nlogden * (ixi0 - 1)];
+//              factor2 = exp( energy1[ie] / Ecut0 * (1.-1./gfactor) );
+              flux_inte[ie] = (utmp1 * (ttmp1 * y1 + ttmp  * y2) +
+                               utmp  * (ttmp  * y3 + ttmp1 * y4)) *
+                               factor * factor1;
+//                             * factor2;
+            }
           }
         } break;
         default: {
@@ -3699,11 +3858,23 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
                          vtmp * (utmp1 * (ttmp1 * y5 + ttmp * y6) * factor3 +
                                  utmp * (ttmp * y7 + ttmp1 * y8)*factor2)) *
                          factor * factor1 * factor4;
+            if( fabs(thermalisation) > 1. ){          
+              y1 = flux_int[ie + ne_loc * (iEcut0 - 1) + ne_loc * nEcut * (ixi0 - 1)];
+              y2 = flux_int[ie + ne_loc * (iEcut0 - 1) + ne_loc * nEcut *  ixi0];
+              y3 = flux_int[ie + ne_loc *  iEcut0      + ne_loc * nEcut *  ixi0];
+              y4 = flux_int[ie + ne_loc *  iEcut0      + ne_loc * nEcut * (ixi0 - 1)];
+              flux_inte[ie] = (utmp1 * (ttmp1 * y1 + ttmp  * y2) * factor3 +
+                               utmp  * (ttmp  * y3 + ttmp1 * y4) * factor2)
+                               * factor * factor1 * factor4;
+            }
           }
         } break;
       }
-      for (ie = 0; ie < ne_loc; ie++)
-        if (rix != 11 && nH0 > 0. && qn != 0.) fluxe[ie] *= pow(r, qn);
+      if (rix != 11 && nH0 > 0. && qn != 0.)
+        for (ie = 0; ie < ne_loc; ie++){
+          fluxe[ie] *= pow(r, qn);
+          flux_inte[ie] *= pow(r, qn);
+        }
 // add the thermal component
       if(thermalisation != 0.){
 //      compute thermalised total flux (Ftherm = Finc - Frefl 
@@ -3714,9 +3885,9 @@ if ((ir0 == 0) || (ir0 >= nradius)) {
         else{
 //        reflected flux in SI units
           Frefl=0.;
-          ttmp = fluxe[0] * (*(*ear_loc));
+          ttmp = flux_inte[0] * (*(*ear_loc));
           for (ie = 1; ie < ne_loc; ie++){
-            ttmp1 = fluxe[ie] * (*(*ear_loc+ie));
+            ttmp1 = flux_inte[ie] * (*(*ear_loc+ie));
             Frefl += (ttmp + ttmp1) / 2. * ((*(*ear_loc+ie))-(*(*ear_loc+ie-1)));
             ttmp = ttmp1;
           }
